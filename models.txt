@@ -1,0 +1,27 @@
+
+We will train five models:
+	- passive v1
+	- passive v2
+	- combo
+	- maximizer
+	- adversarial
+
+1. Passive v1
+	- this will be a passive player that will simply focus on the best possible piece placement every turn
+	- local search / hand written rules
+	- will use simple heuristics like minimize concavity and others
+
+2. Passive v2
+	- same as v1
+	- unsupervised learning for best piece placement 
+
+3. Combo
+	- this will be a more active player that will set up a combo and then execute it
+	- whichever method succeeds better (v1 or v2) trained on different modes and an extra evaluator on every turn for when to switch modes
+
+4. Maximizer
+	- this will be the combo model but trained to get the most combos in the 2:00 time limit
+	- genetic algorithms? 
+
+5. Adversarial
+	- this will be the maximizer model but with the added challenge of playing against another player, which can send lines
