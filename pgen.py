@@ -7,8 +7,7 @@ from random import shuffle
 
 class Piece_Generator:
 	def __init__(self):
-		self.bag = []
-		self.fill_bag()
+		self.reset()
 
 	def fill_bag(self):
 		self.bag = [i for i in range(7)]
@@ -22,3 +21,7 @@ class Piece_Generator:
 			self.fill_bag()
 
 		return np
+
+	def reset(self):
+		self.bag = []
+		self.fill_bag()

@@ -25,3 +25,11 @@ We will train five models:
 
 5. Adversarial
 	- this will be the maximizer model but with the added challenge of playing against another player, which can send lines
+
+
+Elements:
+	- Tetris emulator (for training)
+	- Flash player hack
+		- https://code.tutsplus.com/tutorials/how-to-build-a-python-bot-that-can-play-web-games--active-11117
+	- Models
+	- Traning datasets

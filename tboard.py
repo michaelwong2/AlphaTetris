@@ -3,19 +3,20 @@
 from pgen import Piece_Generator
 from block import Block
 from utils import dequeue
+from bmat import Board_Matrix
 
-class Streamed_Board:
-	def __init__(self, width=10, height=20, current=None, nextq=[]):
+class Abstract_TBoard:
+	def __init__(self, width=10, height=20):
 		self.width = width
 		self.height = height
 
-		self.current_piece = current
+		self.board = Board_Matrix(width, height)
+
+		self.current_piece = None
 		self.held_piece = None
-		self.next_queue = nextq
+		self.next_queue = []
 
 		self.can_hold = True
-
-		self.board = [[None for y in range(height)] for x in range(width)]
 
 	def get_width(self):
 		return self.width
@@ -25,6 +26,12 @@ class Streamed_Board:
 
 	def enqueue(self, p):
 		self.next_queue.append(p)
+
+	def get_current(self):
+		return self.current_piece
+
+	def get_held(self):
+		return self.held_piece
 
 	def hold(self):
 
@@ -41,7 +48,18 @@ class Streamed_Board:
 		
 		# TODO: solidify piece in resting place
 
-		self.current = dequeue(self.next_queue)
+		self.current_piece.set()
+		self.current_piece = dequeue(self.next_queue)
+		self.can_hold = True
+
+	def check_game_over(self):
+
+		# TODO: check that a game is over
+
+		return False
+
+	def make_next_move(self, policy):
+		return make_choice(self.board, self.current_piece, self.held_piece, policy)
 
 	def print_board(self):
 
@@ -53,7 +71,7 @@ class Streamed_Board:
 			line = ''
 
 			for x in range(self.width):
-				cell = self.board[x][y]
+				cell = self.board.lookup(x,y)
 
 				if cell == None:
 					line += '  '
@@ -63,3 +81,10 @@ class Streamed_Board:
 			print line
 
 		print decoration
+
+	def tick(self):
+		# TODO: tick
+		return 
+
+
+
