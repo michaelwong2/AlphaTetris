@@ -6,10 +6,10 @@ ninf = float('-inf')
 def make_choice(board, piece, held_piece, policy):
 	policy.update(board)
 
-	piece_perms = find_best_neighbor(board, piece, policy.rank)
+	piece_perms = argmax_neighbor(board, piece, policy.rank)
 
 	if piece.get_type() == held_piece.get_type():
-		hpiece_perms = find_best_neighbor(board, held_piece, policy.rank)
+		hpiece_perms = argmax_neighbor(board, held_piece, policy.rank)
 
 		if piece_perms[0] < hpiece_perms[0]:
 			return [0] + hpiece_perms[1]
@@ -17,8 +17,8 @@ def make_choice(board, piece, held_piece, policy):
 	return piece_perms[1]
 
 # finds the best ranked neighboring state according to a ranker
-# returns tuple -> (rank, moveset[])
-def find_best_neighbor(board, piece, rank):
+# returns tuple -> (rank: 0-1, moveset[])
+def argmax_neighbor(board, piece, rank):
 	 seen = {}
 
 	 max_rank = ninf
@@ -26,7 +26,7 @@ def find_best_neighbor(board, piece, rank):
 
 	 for rotation in range(4):
 
-	 	# TODO: generate permutation as new_state and new piece location as new_loc
+	 	# TODO: generate permutation as new_state and new piece location as npiece
 
 	 	h = new_state.hash()
 	 	if h in seen:
@@ -37,26 +37,20 @@ def find_best_neighbor(board, piece, rank):
 
 	 	if r > max_rank:
 	 		max_rank = r
-	 		best_moves = generate_moveset(board, piece, new_loc, rotation)
+	 		best_moves = generate_moveset(board, piece, npiece, rotation)
 
 	 return (max_rank, best_moves)
 
 # generate the move encoding for a state transition 
 # returns int list
-def generate_moveset(board, piece, new_loc, rotation):
-	
-	soft_drop = False
-
-	for x,y in new_loc:
-		# if y has no straight path to the top (besides its own piece)
-			soft_drop = True
-
-	if not soft_drop:
+def generate_moveset(board, piece, new_piece, rotation):
+	# if hard drop is available
+	if new_piece.clear_overhead():
 		# translate piece
 		# rotate
 		# drop
 		# return move
-	else:
+	else: 
 		# pathfind
 		# translate
 		# rotate

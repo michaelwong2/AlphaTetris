@@ -22,6 +22,9 @@ class Board_Matrix:
 	def get_height(self):
 		return self.height
 
+	def in_bounds(self, x, y):
+		return x >= 0 and y >= 0 and x < self.width and y < self.height
+
 	def hash(self):
 		h = ''
 		for x in range(self.width):
