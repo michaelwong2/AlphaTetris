@@ -1,6 +1,6 @@
 # AI choice driver
 
-ninf = float('-inf')
+from utils import neg_inf, encode_move
 
 # returns list of integers representing best move
 def make_choice(board, piece, held_piece, policy):
@@ -21,10 +21,10 @@ def make_choice(board, piece, held_piece, policy):
 def argmax_neighbor(board, piece, rank):
 	 seen = {}
 
-	 max_rank = ninf
+	 max_rank = neg_inf()
 	 best_moves = []
 
-	 for rotation in range(4):
+	 for rotation in piece.valid_rotations():
 
 	 	# TODO: generate permutation as new_state and new piece location as npiece
 
@@ -44,17 +44,28 @@ def argmax_neighbor(board, piece, rank):
 # generate the move encoding for a state transition 
 # returns int list
 def generate_moveset(board, piece, new_piece, rotation):
+	moveset = []
+
 	# if hard drop is available
-	if new_piece.clear_overhead():
-		# translate piece
+	if new_piece.has_clear_overhead():
 		# rotate
-		# drop
-		# return move
+
+		# translate piece (if there is any translation)
+		x_diff = new_piece.get_offset()[0] - piece.get_offset()[0]
+
+		if x_diff != 0:
+			translation = encode_move('ltrans') if x_diff < 0 else encode_move('rtrans')
+			moveset.append([translation] * abs(x_diff))
+		
 	else: 
 		# pathfind
 		# translate
 		# rotate
-		# set?
+		pass
+		
+	# drop (to save time)
+	moveset.append(encode_move('drop'))
 
+	return moveset
 
 

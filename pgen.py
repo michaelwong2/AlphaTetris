@@ -4,24 +4,18 @@
 # Then it deals all seven tetrominoes to the piece sequence before generating another bag.
 
 from random import shuffle
+from utils import dequeue
 
 class Piece_Generator:
 	def __init__(self):
-		self.reset()
-
-	def fill_bag(self):
-		self.bag = [i for i in range(7)]
-		shuffle(self.bag)
+		self.bag = []
 
 	def get_next(self):
-		np = self.bag[0]
-		del self.bag[0]
 
 		if len(self.bag) == 0:
-			self.fill_bag()
+			b = [i for i in range(7)]
+			shuffle(b)
+			self.bag = b
 
-		return np
+		return dequeue(self.bag)
 
-	def reset(self):
-		self.bag = []
-		self.fill_bag()
