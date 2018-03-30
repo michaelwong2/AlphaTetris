@@ -33,7 +33,7 @@ block_mats = [
 
 	[[1,0],
 	 [1,1],
-	 [0,1]],
+	 [0,1]]
 ]
 
 vrots = [2,4,4,1,2,4,2]
@@ -51,8 +51,8 @@ colors = [
 def block_color(t):
 	return colors[t]
 
-# initialize a Block object with type (int, 0-6) and rotation (int, 0-3) and position (list)
-# or don't include any arguments for a random block with random rotation and default position
+# initialize a Block object with a board, a type (int, 0-6), rotation (int, 0-3) and offset (tuple x,y)
+# or only include the board for a random block with default rotation and default position
 class Block:
 	def __init__(self, b, t=None, r=None, o=None):
 
@@ -119,13 +119,8 @@ class Block:
 		new_width = len(new_mat)
 		new_height = len(new_mat[0])
 
-		for x in range(new_width):
-			for y in range(new_height):
-				nx = x + self.off_x
-				ny = y + self.off_y
-
-				if not self.board.in_bounds(nx,ny) or not self.board.is_empty(nx,ny):
-					return False
+		if self.collides(0,0):
+			return False
 
 		self.loc_mat = new_mat
 		self.inner_width = new_width
@@ -140,7 +135,7 @@ class Block:
 		return self.move(1, 0)
 
 	def d_translate(self):
-		if not self.collides():
+		if not self.collides(0,1):
 			self.off_y += 1
 			return True
 
@@ -150,24 +145,7 @@ class Block:
 		while self.d_translate():
 			pass
 
-	def collides(self):
-		b = self.board
-
-		for ix in range(self.inner_width):
-			for iy in range(self.inner_height):
-
-				if self.loc_mat[ix][iy] == 0:
-					continue
-
-				x = self.off_x + ix
-				y = self.off_y + iy
-
-				if not b.in_bounds(x, y + 1) or not b.is_empty(x, y + 1):
-					return True
-
-		return False
-
-	def move(self, dx, dy):
+	def collides(self, dx, dy):
 		b = self.board
 
 		for ix in range(self.inner_width):
@@ -180,12 +158,18 @@ class Block:
 				y = self.off_y + iy
 
 				if not b.in_bounds(x + dx, y + dy) or not b.is_empty(x + dx, y + dy):
-					return False		
+					return True
 
-		self.off_x += dx
-		self.off_y += dy
+		return False
 
-		return True
+	def move(self, dx, dy):
+		if not self.collides(dx, dy):
+			self.off_x += dx
+			self.off_y += dy
+
+			return True
+
+		return False
 
 	def has_clear_overhead(self):
 		b = self.board
@@ -208,7 +192,7 @@ class Block:
 
 		return True
 
-	def interpret_move(self, move):
+	def execute_move(self, move):
 		move_dict = [
 			self.c_rotate,
 			self.cc_rotate,

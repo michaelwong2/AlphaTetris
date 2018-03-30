@@ -1,9 +1,9 @@
 # Board class
 
-from block import Block
-from utils import dequeue
-from bmat import Board_Matrix
-from ai_choice import make_choice
+from .block import Block
+from .utils import dequeue, decode_move
+from .bmat import Board_Matrix
+from .ai_choice import make_choice
 
 class Board_Controller:
 	def __init__(self, width=10, height=21):
@@ -71,12 +71,21 @@ class Board_Controller:
 		return False
 
 	# get an AI's next move based on a policy 
-	def make_next_move(self, policy):
+	def get_next_moves(self, policy):
 		return make_choice(self.board, self.current_piece, self.held_piece, policy)
 
 	# move the current piece down
 	def move_current_down(self):	
 		return self.current_piece.d_translate()
+
+	def execute_move(self, move):
+		if decode_move(move) != 'hold':
+			self.current_piece.execute_move(move)
+		else:
+			self.hold()
+
+	def cannot_move_down(self):
+		return self.current_piece.collides(0,1)
 
 	# clear all lines that are complete
 	def clear_lines(self):

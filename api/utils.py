@@ -1,5 +1,7 @@
 # utils
 
+from random import shuffle
+
 # given a list l, return the first element in it and remove it from the list
 def dequeue(l):
 	if l == None or len(l) == 0:
@@ -36,3 +38,16 @@ def inf():
 
 def neg_inf():
 	return -inf
+
+class Piece_Generator:
+	def __init__(self):
+		self.bag = []
+
+	def get_next(self):
+
+		if len(self.bag) == 0:
+			b = [i for i in range(7)]
+			shuffle(b)
+			self.bag = b
+
+		return dequeue(self.bag)

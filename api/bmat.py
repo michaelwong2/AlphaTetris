@@ -50,6 +50,8 @@ class Board_Matrix:
 
 	# if there are any complete lines, remove them
 	def clear_lines(self):
+		lines_cleared = 0
+
 		for y in range(self.height):
 			c = 0
 
@@ -58,6 +60,9 @@ class Board_Matrix:
 
 			if c == self.width:
 				self.shift_down(y)
+				lines_cleared += 1
+
+		return lines_cleared
 
 	# shift down all cells (excluding live pieces) from i upwards
 	def shift_down(self, i):

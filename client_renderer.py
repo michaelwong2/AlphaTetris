@@ -2,13 +2,14 @@
 
 import pygame
 import sys
-from bcontroller import Board_Controller
-from pgen import Piece_Generator
-from utils import dequeue, decode_move, encode_move
-from block import block_color
+from random import randint
 
-PIECE_W = 30
-PIECE_H = 30
+from api.bcontroller import Board_Controller
+from api.utils import dequeue, decode_move, encode_move, Piece_Generator
+from api.block import block_color
+
+PIECE_W = 20
+PIECE_H = 20
 PIECE_MARGIN = 1
 
 TOTAL_PIECE_WIDTH = PIECE_MARGIN + PIECE_W
@@ -70,8 +71,9 @@ class Tetris:
 		return moves
 
 	def ai_choose(self):
-		# return board.make_next_move(self.policy)
-		return [encode_move('drop')]
+		# return board.get_next_move(self.policy)
+		# return [encode_move('drop')]
+		return [randint(0,6)]
 
 	def game_loop(self):
 
@@ -95,17 +97,13 @@ class Tetris:
 			# get the next move(s)
 			moves += get_moves()
 
-			current = board.get_current()
-
 			# execute move from move_queue
 			if len(moves) > 0:
 				next_move = dequeue(moves)
-				if decode_move(next_move) != 'hold':
-					current.interpret_move(next_move)
-				else:
-					board.hold()
+				print('Next move: ' + decode_move(next_move))
+				board.execute_move(next_move)
 
-			if current.collides():
+			if board.cannot_move_down():
 				# reset
 				board.set_current()
 				board.clear_lines()
@@ -117,11 +115,9 @@ class Tetris:
 				board.spawn_next()
 
 			if tick_counter == TICK_DELAY:
-				# print(time)
 				tick_counter = 0
-				current.d_translate()
+				board.move_current_down()
 					
-
 			self.render()
 
 			pygame.display.flip()
