@@ -3,7 +3,6 @@
 from .block import Block
 from .utils import dequeue, decode_move
 from .bmat import Board_Matrix
-from .ai_choice import make_choice
 
 class Board_Controller:
 	def __init__(self, width=10, height=21):
@@ -48,10 +47,8 @@ class Board_Controller:
 			return
 
 		h = self.held_piece
-		self.held_piece = self.current_piece
+		self.held_piece = Block(self.board, self.current_piece.get_type())
 		self.current_piece = h if h != None else dequeue(self.next_queue)
-
-		self.current_piece.reset_offset()
 
 		self.can_hold = False
 		
@@ -69,10 +66,6 @@ class Board_Controller:
 				return True
 
 		return False
-
-	# get an AI's next move based on a policy 
-	def get_next_moves(self, policy):
-		return make_choice(self.board, self.current_piece, self.held_piece, policy)
 
 	# move the current piece down
 	def move_current_down(self):	

@@ -1,6 +1,6 @@
 # AI choice driver
 
-from .utils import neg_inf, encode_move
+from ..api.utils import neg_inf, encode_move
 
 # returns list of integers representing best move
 def make_choice(board, piece, held_piece, policy):

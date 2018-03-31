@@ -70,11 +70,6 @@ class Tetris:
 
 		return moves
 
-	def ai_choose(self):
-		# return board.get_next_move(self.policy)
-		# return [encode_move('drop')]
-		return [randint(0,6)]
-
 	def game_loop(self):
 
 		board = self.board
@@ -86,7 +81,7 @@ class Tetris:
 
 		tick_counter = 0
 
-		get_moves = self.handle_key_event if not self.use_ai else self.ai_choose
+		get_moves = self.handle_key_event if not self.use_ai else self.policy
 
 		while True:
 
@@ -100,7 +95,7 @@ class Tetris:
 			# execute move from move_queue
 			if len(moves) > 0:
 				next_move = dequeue(moves)
-				print('Next move: ' + decode_move(next_move))
+				# print('Next move: ' + decode_move(next_move))
 				board.execute_move(next_move)
 
 			if board.cannot_move_down():
