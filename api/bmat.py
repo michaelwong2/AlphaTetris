@@ -68,6 +68,22 @@ class Board_Matrix:
 
 		return False
 
+	# add n = len(gaps) lines given an array of gaps of indeces
+	def add_grays_with_gaps(self, gaps):
+		for gap in gaps:
+			if not self.add_gray_with_gap(gap):
+				return False
+
+		return True
+
+	# s will be the index where a gap occurs in a line
+	def add_gray_with_gap(self, s):
+		if self.shift_up(1):
+			self.set(x,self.height-1, None)
+			return True
+
+		return False
+
 	# remove n gray lines
 	def remove_grays(self, n):
 		if gray_lines < n:
