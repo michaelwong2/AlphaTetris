@@ -49,7 +49,10 @@ colors = [
 ]
 
 def block_color(t):
-	return colors[t]
+	if t <= -1:
+		return (200,200,200)
+	else:
+		return colors[t]
 
 # initialize a Block object with a board, a type (int, 0-6), rotation (int, 0-3) and offset (tuple x,y)
 # or only include the board for a random block with default rotation and default position
@@ -83,6 +86,9 @@ class Block:
 	def set_offset(self, x, y):
 		self.off_x = x
 		self.off_y = y
+
+	def set_board(self, b):
+		self.board = b
 
 	def reset_offset(self):
 		self.set_offset(math.floor(self.board.get_width() / 2) - math.ceil(self.inner_width/2), 0)
@@ -210,8 +216,12 @@ class Block:
 	def get_color(self):
 		return block_color(self.t)
 
-	def to_string(self):
+	def get_copy(self):
+		return Block(self.board, self.t)
+
+	def __str__(self):
 		return self.get_block_type()
+
 
 	
 
