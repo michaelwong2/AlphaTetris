@@ -4,9 +4,9 @@ import pygame
 import sys
 from random import randint
 
-from api.bcontroller import Board_Controller
-from api.utils import dequeue, decode_move, encode_move, Piece_Generator
-from api.block import block_color
+from AlphaTetris.api.bcontroller import Board_Controller
+from AlphaTetris.api.utils import dequeue, decode_move, encode_move, Piece_Generator
+from AlphaTetris.api.block import block_color
 
 PIECE_W = 20
 PIECE_H = 20
@@ -112,7 +112,7 @@ class Tetris:
 			if tick_counter == TICK_DELAY:
 				tick_counter = 0
 				board.move_current_down()
-					
+
 			self.render()
 
 			pygame.display.flip()
@@ -136,14 +136,13 @@ class Tetris:
 				else:
 					color = block_color(piece) if piece != None else GRAY
 
-				pygame.draw.rect(self.screen, color, 
+				pygame.draw.rect(self.screen, color,
 					pygame.Rect(
-						(TOTAL_PIECE_WIDTH) * x, 
-						(TOTAL_PIECE_HEIGHT) * y, 
-						PIECE_W, 
+						(TOTAL_PIECE_WIDTH) * x,
+						(TOTAL_PIECE_HEIGHT) * y,
+						PIECE_W,
 						PIECE_H
 					)
 				)
 
 t = Tetris()
-		

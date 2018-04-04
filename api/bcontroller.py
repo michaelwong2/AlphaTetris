@@ -51,7 +51,7 @@ class Board_Controller:
 		self.current_piece = h if h != None else dequeue(self.next_queue)
 
 		self.can_hold = False
-		
+
 	# dequeue the next piece and place it on the board
 	def spawn_next(self):
 		self.current_piece = dequeue(self.next_queue)
@@ -60,15 +60,10 @@ class Board_Controller:
 	# check if there is a solidified block in the top row
 	# is so, that means the player was KO'd
 	def check_KO(self):
-
-		for x in range(self.width):
-			if not self.board.is_empty(x,1):
-				return True
-
-		return False
+		return self.board.check_KO()
 
 	# move the current piece down
-	def move_current_down(self):	
+	def move_current_down(self):
 		return self.current_piece.d_translate()
 
 	def execute_move(self, move):
@@ -95,5 +90,3 @@ class Board_Controller:
 				line += self.board.lookup(x,y) + ' ' if  self.board.is_empty(x,y) else '0 '
 
 			print(line)
-
-

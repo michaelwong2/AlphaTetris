@@ -47,7 +47,7 @@ class Board_Matrix:
 
 				h += 'p' if i == None else 'n'
 
-			h += 'b' 
+			h += 'b'
 
 		return h
 
@@ -55,6 +55,13 @@ class Board_Matrix:
 	def get_copy(self):
 		c = [[self.lookup(x,y) for y in range(self.height)] for x in range(self.width)]
 		return Board_Matrix(self.width, self.height, c, self.gray_lines)
+
+	def check_KO(self):
+		for x in range(self.width):
+			if not self.is_empty(x,1):
+				return True
+
+		return False
 
 	# add n gray lines to the bottom
 	def add_grays(self, n):
@@ -68,14 +75,6 @@ class Board_Matrix:
 
 		return False
 
-	# add n = len(gaps) lines given an array of gaps of indeces
-	def add_grays_with_gaps(self, gaps):
-		for gap in gaps:
-			if not self.add_gray_with_gap(gap):
-				return False
-
-		return True
-
 	# s will be the index where a gap occurs in a line
 	def add_gray_with_gap(self, s):
 		if self.shift_up(1):
@@ -83,6 +82,14 @@ class Board_Matrix:
 			return True
 
 		return False
+
+	# add n = len(gaps) lines given an array of gaps of indeces
+	def add_grays_with_gaps(self, gaps):
+		for gap in gaps:
+			if not self.add_gray_with_gap(gap):
+				return False
+
+		return True
 
 	# remove n gray lines
 	def remove_grays(self, n):
@@ -101,7 +108,7 @@ class Board_Matrix:
 		for y in range(self.height):
 			c = 0
 
-			for x in range(self.width):	
+			for x in range(self.width):
 				c += 1 if self.is_empty(x,y) or self.is_gray(x,y) else 0
 
 			if c == self.width:
@@ -126,14 +133,11 @@ class Board_Matrix:
 	def shift_up(self, n):
 
 		for i in range(n):
-			for x in range(self.width):
-				if not self.is_empty(x, 0):
-					return False
+			if self.check_KO():
+				return False
 
 			for y in range(self.height-2, -1, -1):
 				for x in range(self.width):
 					self.set(x,y, self.lookup(x,y+1))
 
 		return True
-
-

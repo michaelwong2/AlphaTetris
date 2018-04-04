@@ -7,9 +7,9 @@ block_types = ['I', 'J', 'L', 'O', 'S', 'T', 'Z']
 
 block_mats = [
 
-	[[1], 
-	 [1], 
-	 [1], 
+	[[1],
+	 [1],
+	 [1],
 	 [1]],
 
 	[[1,1],
@@ -57,10 +57,10 @@ def block_color(t):
 # initialize a Block object with a board, a type (int, 0-6), rotation (int, 0-3) and offset (tuple x,y)
 # or only include the board for a random block with default rotation and default position
 class Block:
-	def __init__(self, b, t=None, r=None, o=None):
+	def __init__(self, b, t=None, r=0):
 
 		self.t = t if t != None else randint(0,6)
-		self.rot = r if r != None else 0
+		self.rot = r
 
 		self.loc_mat = block_mats[self.t]
 
@@ -69,7 +69,7 @@ class Block:
 
 		self.board = b
 
-		self.reset_offset()
+		self.set_offset(math.floor(self.board.get_width() / 2) - math.ceil(self.inner_width/2), 0)
 
 	def set(self):
 		for x in range(self.inner_width):
@@ -90,9 +90,6 @@ class Block:
 	def set_board(self, b):
 		self.board = b
 
-	def reset_offset(self):
-		self.set_offset(math.floor(self.board.get_width() / 2) - math.ceil(self.inner_width/2), 0)
-
 	def intersects(self, x, y):
 		if x >= self.off_x and x < self.off_x + self.inner_width and y >= self.off_y and y < self.off_y + self.inner_height:
 			dx = x - self.off_x
@@ -100,7 +97,7 @@ class Block:
 
 			return self.loc_mat[dx][dy] == 1
 
-		return False		
+		return False
 
 	def get_rotation(self):
 		return self.rotation
@@ -125,20 +122,20 @@ class Block:
 		new_width = len(new_mat)
 		new_height = len(new_mat[0])
 
-		if self.collides(0,0):
+		if self.collides():
 			return False
 
 		self.loc_mat = new_mat
 		self.inner_width = new_width
-		self.inner_height = new_height	
+		self.inner_height = new_height
 
-		return True	
+		return True
 
 	def l_translate(self):
-		return self.move(-1, 0)
+		return self.move(-1)
 
 	def r_translate(self):
-		return self.move(1, 0)
+		return self.move(1)
 
 	def d_translate(self):
 		if not self.collides(0,1):
@@ -151,7 +148,7 @@ class Block:
 		while self.d_translate():
 			pass
 
-	def collides(self, dx, dy):
+	def collides(self, dx=0, dy=0):
 		b = self.board
 
 		for ix in range(self.inner_width):
@@ -168,7 +165,7 @@ class Block:
 
 		return False
 
-	def move(self, dx, dy):
+	def move(self, dx=0, dy=0):
 		if not self.collides(dx, dy):
 			self.off_x += dx
 			self.off_y += dy
@@ -221,7 +218,3 @@ class Block:
 
 	def __str__(self):
 		return self.get_block_type()
-
-
-	
-
