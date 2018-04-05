@@ -1,6 +1,6 @@
 # AlphaTetris
 
-This AI will outfitted to compete on a national level in Tetris (single and multiplayer). We will make a custom API for performance on any platform. We demonstrate use of the API with two implementations: a custom made renderer and the online Tetris Battle 2p. 
+This AI will outfitted to compete on a national level in Tetris (single and multiplayer). We will make a custom API for performance on any platform. We demonstrate use of the API with two implementations: a custom made renderer and the online Tetris Battle 2p.
 
 https://www.engadget.com/2015/04/29/tetris-is-a-cruel-mistress/
 
@@ -8,9 +8,10 @@ http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.55.8562&rep=rep1&type=p
 
 ### TO DO:
 * fix rotating on client
-* add gray blocks to api
 * fix drop delay on client for soft dropping
-* make flash player plugin
+* make tool to read website data
+	- must report next pieces
+	- must report lines received
 * make AIs
 
 ### Dependencies:
@@ -19,20 +20,17 @@ http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.55.8562&rep=rep1&type=p
 
 ## Four modes:
 1. "Local" Search -- tree based search
-4. Evolved -- Genetic algorithm
-5. Magic -- LSTM (?) or Deep Neural Net (supervised)
+2. Evolved -- Genetic algorithm
+3. Magic -- LSTM (?) or Deep Neural Net (supervised)
 
 ## Optimize for:
-* Combos 
+* Combos
 * T-spins
 * Perfect clears
 	- http://math.mit.edu/~rstan/papers/tilings.pdf
 
-#### Reference for hacking into online apps:
-https://code.tutsplus.com/tutorials/how-to-build-a-python-bot-that-can-play-web-games--active-11117
-
 #### Previous work
-Most of these just use local search or genetic algorithms. I think only MisaMino (the best in the world?) can T-Spin and uses a local tree search approach which we will implement as our base ai. 
+Most of these just use local search or genetic algorithms. I think only MisaMino (the best in the world?) can T-Spin and uses a local tree search approach which we will implement as our base ai.
 * https://github.com/Hohol/TetrisPlayer
 * https://www.reddit.com/r/programming/comments/3djn3c/state_of_the_art_tetris_ai_misamino_source_code/
 	- https://github.com/misakamm/MisaMino
