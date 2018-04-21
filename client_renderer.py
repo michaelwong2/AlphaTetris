@@ -4,9 +4,9 @@ import pygame
 import sys
 from random import randint
 
-from AlphaTetris.api.bcontroller import Board_Controller
-from AlphaTetris.api.utils import dequeue, decode_move, encode_move, Piece_Generator
-from AlphaTetris.api.block import block_color
+from api.bcontroller import Board_Controller
+from api.utils import dequeue, decode_move, encode_move, Piece_Generator
+from api.block import block_color
 
 PIECE_W = 20
 PIECE_H = 20

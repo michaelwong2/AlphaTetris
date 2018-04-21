@@ -72,10 +72,15 @@ class Block:
 		self.set_offset(math.floor(self.board.get_width() / 2) - math.ceil(self.inner_width/2), 0)
 
 	def set(self):
-		for x in range(self.inner_width):
-			for y in range(self.inner_height):
-				if self.loc_mat[x][y] == 1:
-					self.board.set(self.off_x + x, self.off_y + y, self.t)
+		try:
+			for x in range(self.inner_width):
+				for y in range(self.inner_height):
+					if self.loc_mat[x][y] == 1:
+						self.board.set(self.off_x + x, self.off_y + y, self.t)
+		except:
+			print("error:")
+			print(self.off_x)
+			print(self.off_y)
 
 	def get_type(self):
 		return self.t

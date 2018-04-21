@@ -8,7 +8,7 @@ class Board_Matrix:
 		self.mat = b if len(b) > 0 else [[None for y in range(h)] for x in range(w)]
 
 		self.gray_lines = g
-
+		
 	def lookup(self, x, y):
 		return self.mat[x][y]
 
@@ -58,7 +58,7 @@ class Board_Matrix:
 
 	def check_KO(self):
 		for x in range(self.width):
-			if not self.is_empty(x,1):
+			if not self.is_empty(x,0):
 				return True
 
 		return False
@@ -93,13 +93,16 @@ class Board_Matrix:
 
 	# remove n gray lines
 	def remove_grays(self, n):
-		if gray_lines < n:
+
+		if self.gray_lines == 0:
 			return
+		elif self.gray_lines < n:
+			n = self.gray_lines
 
-		for i in range(n, -1, -1):
-			self.shift_down(self.height - i - 1)
+		for i in range(n-1, -1, -1):
+			self.shift_down(self.height - i)
 
-		gray_lines -= n
+		self.gray_lines -= n
 
 	# if there are any complete lines, remove them
 	def clear_lines(self):
@@ -109,7 +112,7 @@ class Board_Matrix:
 			c = 0
 
 			for x in range(self.width):
-				c += 1 if self.is_empty(x,y) or self.is_gray(x,y) else 0
+				c += 0 if self.is_empty(x,y) or self.is_gray(x,y) else 1
 
 			if c == self.width:
 				self.shift_down(y)
