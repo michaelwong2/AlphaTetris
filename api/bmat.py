@@ -8,12 +8,18 @@ class Board_Matrix:
 		self.mat = b if len(b) > 0 else [[None for y in range(h)] for x in range(w)]
 
 		self.gray_lines = g
-		
+
+		self.bheight = 0 if len(b) == 0 else self.calc_build_height()
+
 	def lookup(self, x, y):
 		return self.mat[x][y]
 
 	def set(self, x, y, item):
 		self.mat[x][y] = item
+
+		if item != None and item >= 0:
+			n = self.height - y
+			self.bheight = self.bheight if n < self.bheight else n
 
 	def is_empty(self, x, y):
 		return self.mat[x][y] == None
@@ -38,6 +44,17 @@ class Board_Matrix:
 	def in_bounds(self, x, y):
 		return x >= 0 and y >= 0 and x < self.width and y < self.height
 
+	def build_height(self):
+		return self.bheight
+
+	def calc_build_height(self):
+		for y in range(self.height):
+			for x in range(self.width):
+				if not self.is_empty(x, y):
+					return self.height - y
+
+		return 0
+
 	def hash(self):
 		h = ''
 		for x in range(self.width):
@@ -57,11 +74,7 @@ class Board_Matrix:
 		return Board_Matrix(self.width, self.height, c, self.gray_lines)
 
 	def check_KO(self):
-		for x in range(self.width):
-			if not self.is_empty(x,0):
-				return True
-
-		return False
+		return self.build_height() >= self.height
 
 	# add n gray lines to the bottom
 	def add_grays(self, n):
@@ -130,6 +143,8 @@ class Board_Matrix:
 		for y in range(i-1, -1, -1):
 			for x in range(self.width):
 				self.set(x,y+1, self.lookup(x,y))
+
+		self.bheight -= 1
 
 	# shift up all cells k <= n times
 	# returns true if successful

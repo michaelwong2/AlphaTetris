@@ -28,7 +28,7 @@ class Board_Controller:
 
 	# enqueue a piece into the piece queue
 	def enqueue(self, t):
-		self.next_queue.append(Block(self.board, t))
+		self.next_queue.append(t)
 
 	# return the current piece
 	def get_current(self):
@@ -47,14 +47,14 @@ class Board_Controller:
 			return
 
 		h = self.held_piece
-		self.held_piece = Block(self.board, self.current_piece.get_type())
-		self.current_piece = h if h != None else dequeue(self.next_queue)
+		self.held_piece = self.current_piece.get_type()
+		self.current_piece = Block(self.board, h) if h != None else Block(self.board, dequeue(self.next_queue))
 
 		self.can_hold = False
 
 	# dequeue the next piece and place it on the board
 	def spawn_next(self):
-		self.current_piece = dequeue(self.next_queue)
+		self.current_piece = Block(self.board, dequeue(self.next_queue))
 		self.can_hold = True
 
 	# check if there is a solidified block in the top row

@@ -78,12 +78,22 @@ class Block:
 					if self.loc_mat[x][y] == 1:
 						self.board.set(self.off_x + x, self.off_y + y, self.t)
 		except:
-			print("error:")
-			print(self.off_x)
-			print(self.off_y)
+			print("error ...")
+
+			for x in range(self.inner_width):
+				for y in range(self.inner_height):
+					if self.loc_mat[x][y] == 1:
+						print("accessing " + str(self.off_x + x) + ", " + str(self.off_y + y))
+						self.board.set(self.off_x + x, self.off_y + y, self.t)
 
 	def get_type(self):
 		return self.t
+
+	def get_width(self):
+		return len(self.loc_mat)
+
+	def get_height(self):
+		return len(self.loc_mat[0])
 
 	def get_offset(self):
 		return (self.off_x, self.off_y)
@@ -218,8 +228,8 @@ class Block:
 	def get_color(self):
 		return block_color(self.t)
 
-	def get_copy(self):
-		return Block(self.board, self.t)
+	def get_copy(self, r=0):
+		return Block(self.board, self.t, r)
 
 	def __str__(self):
 		return self.get_block_type()
