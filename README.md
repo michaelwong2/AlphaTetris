@@ -38,6 +38,7 @@ Most of these just use local search or genetic algorithms. I think only MisaMino
 * https://medium.com/python-pandemonium/building-a-tetris-bot-part-1-the-stupid-bot-2cbc38d6e32b
 * https://www.sciencedirect.com/science/article/pii/S1877050915022942
 * https://codemyroad.wordpress.com/2013/04/14/tetris-ai-the-near-perfect-player/
+* http://cs231n.stanford.edu/reports/2016/pdfs/121_Report.pdf
 
 #### Competitive Platforms
 - Tetris Friends
