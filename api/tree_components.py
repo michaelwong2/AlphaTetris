@@ -99,3 +99,6 @@ class Tree_node:
 		# only recurse with the current piece if there is one but switch pieces always
 		generate_successor_states(self.board, self.current, self.held, self.q, self.add_child, False)
 		generate_successor_states(self.board, self.held, self.current, self.q, self.add_child, True)
+
+		del self.board
+		
