@@ -54,6 +54,9 @@ def block_color(t):
 	else:
 		return colors[t]
 
+def valid_rotations(t):
+	return vrots[t]
+
 # initialize a Block object with a board, a type (int, 0-6), rotation (int, 0-3) and offset (tuple x,y)
 # or only include the board for a random block with default rotation and default position
 class Block:
@@ -223,7 +226,7 @@ class Block:
 		move_dict[move]()
 
 	def valid_rotations(self):
-		return vrots[self.t]
+		return valid_rotations(self.type)
 
 	def get_color(self):
 		return block_color(self.t)
