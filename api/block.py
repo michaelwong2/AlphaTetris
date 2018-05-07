@@ -54,6 +54,9 @@ def block_color(t):
 	else:
 		return colors[t]
 
+def valid_rotations(t):
+	return vrots[t]
+
 # initialize a Block object with a board, a type (int, 0-6), rotation (int, 0-3) and offset (tuple x,y)
 # or only include the board for a random block with default rotation and default position
 class Block:
@@ -69,7 +72,7 @@ class Block:
 
 		self.board = b
 
-		self.set_offset(math.floor(self.board.get_width() / 2) - math.ceil(self.inner_width/2), 0)
+		self.set_offset(self.get_spawn())
 
 	def set(self):
 		try:
@@ -85,6 +88,9 @@ class Block:
 					if self.loc_mat[x][y] == 1:
 						print("accessing " + str(self.off_x + x) + ", " + str(self.off_y + y))
 						self.board.set(self.off_x + x, self.off_y + y, self.t)
+
+	def get_spawn(self):
+		return (math.floor(self.board.get_width() / 2) - math.ceil(self.inner_width/2), 0)
 
 	def get_type(self):
 		return self.t
@@ -223,7 +229,7 @@ class Block:
 		move_dict[move]()
 
 	def valid_rotations(self):
-		return vrots[self.t]
+		return valid_rotations(self.type)
 
 	def get_color(self):
 		return block_color(self.t)
