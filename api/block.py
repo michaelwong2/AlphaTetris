@@ -60,7 +60,7 @@ def valid_rotations(t):
 # initialize a Block object with a board, a type (int, 0-6), rotation (int, 0-3) and offset (tuple x,y)
 # or only include the board for a random block with default rotation and default position
 class Block:
-	def __init__(self, b, t=None, r=0):
+	def __init__(self, t=None, r=0):
 
 		self.t = t if t != None else randint(0,6)
 		self.rot = r
@@ -70,16 +70,14 @@ class Block:
 		self.inner_width = len(self.loc_mat)
 		self.inner_height = len(self.loc_mat[0])
 
-		self.board = b
-
 		self.set_offset(self.get_spawn())
 
-	def set(self):
+	def set(self, board):
 		try:
 			for x in range(self.inner_width):
 				for y in range(self.inner_height):
 					if self.loc_mat[x][y] == 1:
-						self.board.set(self.off_x + x, self.off_y + y, self.t)
+						board.set(self.off_x + x, self.off_y + y, self.t)
 		except:
 			print("error ...")
 
@@ -87,10 +85,10 @@ class Block:
 				for y in range(self.inner_height):
 					if self.loc_mat[x][y] == 1:
 						print("accessing " + str(self.off_x + x) + ", " + str(self.off_y + y))
-						self.board.set(self.off_x + x, self.off_y + y, self.t)
+						board.set(self.off_x + x, self.off_y + y, self.t)
 
-	def get_spawn(self):
-		return (math.floor(self.board.get_width() / 2) - math.ceil(self.inner_width/2), 0)
+	def get_spawn(self, width=10):
+		return (math.floor(width / 2) - math.ceil(self.inner_width/2), 0)
 
 	def get_type(self):
 		return self.t
@@ -108,9 +106,6 @@ class Block:
 		self.off_x = x
 		self.off_y = y
 
-	def set_board(self, b):
-		self.board = b
-
 	def intersects(self, x, y):
 		if x >= self.off_x and x < self.off_x + self.inner_width and y >= self.off_y and y < self.off_y + self.inner_height:
 			dx = x - self.off_x
@@ -126,13 +121,13 @@ class Block:
 	def get_block_type(self):
 		return block_types[self.t]
 
-	def c_rotate(self):
-		return self.rotate(True)
+	def c_rotate(self, board):
+		return self.rotate(board, True)
 
-	def cc_rotate(self):
-		return self.rotate(False)
+	def cc_rotate(self, board):
+		return self.rotate(board, False)
 
-	def rotate(self, clockwise):
+	def rotate(self, board, clockwise):
 		if clockwise:
 			self.rot = self.rot + 1 if self.rot < 3 else 0
 			new_mat = [[self.loc_mat[x][y] for x in range(self.inner_width)] for y in range(self.inner_height-1, -1, -1)]
@@ -143,7 +138,7 @@ class Block:
 		new_width = len(new_mat)
 		new_height = len(new_mat[0])
 
-		if self.collides():
+		if self.collides(board):
 			return False
 
 		self.loc_mat = new_mat
@@ -152,26 +147,24 @@ class Block:
 
 		return True
 
-	def l_translate(self):
-		return self.move(-1)
+	def l_translate(self, board):
+		return self.move(board, -1)
 
-	def r_translate(self):
-		return self.move(1)
+	def r_translate(self, board):
+		return self.move(board, 1)
 
-	def d_translate(self):
-		if not self.collides(0,1):
+	def d_translate(self, board):
+		if not self.collides(board, 0, 1):
 			self.off_y += 1
 			return True
 
 		return False
 
-	def drop(self):
-		while self.d_translate():
+	def drop(self, board):
+		while self.d_translate(board):
 			pass
 
-	def collides(self, dx=0, dy=0):
-		b = self.board
-
+	def collides(self, b, dx=0, dy=0):
 		for ix in range(self.inner_width):
 			for iy in range(self.inner_height):
 
@@ -186,8 +179,8 @@ class Block:
 
 		return False
 
-	def move(self, dx=0, dy=0):
-		if not self.collides(dx, dy):
+	def move(self, b, dx=0, dy=0):
+		if not self.collides(b, dx, dy):
 			self.off_x += dx
 			self.off_y += dy
 
@@ -195,8 +188,7 @@ class Block:
 
 		return False
 
-	def has_clear_overhead(self):
-		b = self.board
+	def has_clear_overhead(self, b):
 
 		for ix in range(self.inner_width):
 			for iy in range(self.inner_height):
@@ -216,7 +208,7 @@ class Block:
 
 		return True
 
-	def execute_move(self, move):
+	def execute_move(self, move, board):
 		move_dict = [
 			self.c_rotate,
 			self.cc_rotate,
@@ -226,7 +218,7 @@ class Block:
 			self.drop
 		]
 
-		move_dict[move]()
+		move_dict[move](board)
 
 	def valid_rotations(self):
 		return valid_rotations(self.type)
@@ -235,7 +227,7 @@ class Block:
 		return block_color(self.t)
 
 	def get_copy(self, r=0):
-		return Block(self.board, self.t, r)
+		return Block(self.t, r)
 
 	def __str__(self):
 		return self.get_block_type()

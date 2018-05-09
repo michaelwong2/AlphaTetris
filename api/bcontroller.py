@@ -35,7 +35,7 @@ class Board_Controller:
 		return self.current_piece
 
 	def set_current(self):
-		self.current_piece.set()
+		self.current_piece.set(self.board)
 
 	# return the current held piece if there is one
 	def get_held(self):
@@ -48,13 +48,13 @@ class Board_Controller:
 
 		h = self.held_piece
 		self.held_piece = self.current_piece.get_type()
-		self.current_piece = Block(self.board, h) if h != None else Block(self.board, dequeue(self.next_queue))
+		self.current_piece = Block(h) if h != None else Block(dequeue(self.next_queue))
 
 		self.can_hold = False
 
 	# dequeue the next piece and place it on the board
 	def spawn_next(self):
-		self.current_piece = Block(self.board, dequeue(self.next_queue))
+		self.current_piece = Block(dequeue(self.next_queue))
 		self.can_hold = True
 
 	# check if there is a solidified block in the top row
@@ -64,16 +64,16 @@ class Board_Controller:
 
 	# move the current piece down
 	def move_current_down(self):
-		return self.current_piece.d_translate()
+		return self.current_piece.d_translate(self.board)
 
 	def execute_move(self, move):
 		if decode_move(move) != 'hold':
-			self.current_piece.execute_move(move)
+			self.current_piece.execute_move(move, self.board)
 		else:
 			self.hold()
 
 	def cannot_move_down(self):
-		return self.current_piece.collides(0,1)
+		return self.current_piece.collides(self.board, 0, 1)
 
 	# clear all lines that are complete
 	def clear_lines(self):
