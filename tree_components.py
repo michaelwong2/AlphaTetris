@@ -1,7 +1,7 @@
 # search tree components
 from copy import deepcopy
 from api.block import Block, valid_rotations
-from api.utils import dequeue, encode_move
+from api.utils import dequeue, encode_move, neg_inf
 from api.bmat import Board_Matrix
 
 
@@ -56,6 +56,25 @@ class Tree_node:
 		for child in self.children:
 			child.deep_delete()
 			del child
+
+	def get_max_child(self):
+
+		if self.is_leaf():
+			# TODO return ranking
+			return 1
+
+		mi = -1
+		ma = neg_inf()
+
+		for i in range(len(self.children)):
+			c = self.children[i]
+			cr = c.get_max_child()
+
+			if cr > ma:
+				ma = cr
+				mi = i
+
+		return mi
 
 	def generate_children(self):
 		# only recurse with the current piece if there is one but switch pieces always
