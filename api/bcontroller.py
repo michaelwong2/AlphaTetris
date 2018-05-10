@@ -78,15 +78,4 @@ class Board_Controller:
 	# clear all lines that are complete
 	def clear_lines(self):
 		self.board.clear_lines()
-
-	# for debugging
-	def print_board(self):
-
-		for y in range(self.height):
-
-			line = ''
-
-			for x in range(self.width):
-				line += self.board.lookup(x,y) + ' ' if  self.board.is_empty(x,y) else '0 '
-
-			print(line)
+		

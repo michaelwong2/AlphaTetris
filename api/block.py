@@ -60,10 +60,10 @@ def valid_rotations(t):
 # initialize a Block object with a board, a type (int, 0-6), rotation (int, 0-3) and offset (tuple x,y)
 # or only include the board for a random block with default rotation and default position
 class Block:
-	def __init__(self, t=None, r=0):
+	def __init__(self, t=None):
 
 		self.t = t if t != None else randint(0,6)
-		self.rot = r
+		self.rot = 0
 
 		self.loc_mat = block_mats[self.t]
 
@@ -87,8 +87,12 @@ class Block:
 						print("accessing " + str(self.off_x + x) + ", " + str(self.off_y + y))
 						board.set(self.off_x + x, self.off_y + y, self.t)
 
+	def set_rotation(self, board, rotation):
+		for i in range(rotation - self.rot):
+			self.c_rotate(board)
+
 	def get_spawn(self, width=10):
-		return (math.floor(width / 2) - math.ceil(self.inner_width/2), 0)
+		return math.floor(width / 2) - math.ceil(self.inner_width/2)
 
 	def get_type(self):
 		return self.t
@@ -102,7 +106,7 @@ class Block:
 	def get_offset(self):
 		return (self.off_x, self.off_y)
 
-	def set_offset(self, x, y):
+	def set_offset(self, x, y=0):
 		self.off_x = x
 		self.off_y = y
 

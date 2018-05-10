@@ -1,19 +1,14 @@
 # search tree components
 from copy import deepcopy
-from api.block import block, valid_rotations
+from api.block import Block, valid_rotations
 from api.utils import dequeue, encode_move
+from api.bmat import Board_Matrix
 
 
 # given a board and a piece in a specific x,y loc
 # generate an array of moves corresponding to getting that piece in a certain loc
 def calculate_move(board, piece):
 	pass
-
-# helper function to state tree BFS
-# takes a board, current, held, queue, adder function, and bool
-def generate_successor_states(board, current_piece, held_piece, piece_queue, add_child, is_held):
-
-
 
 
 class Tree_node:
@@ -28,6 +23,12 @@ class Tree_node:
 
 	def is_leaf(self):
 		return self.current == -1
+
+	def print_node(self):
+		print("Current: " + str(self.current))
+		print("Held: " + str(self.held))
+		print("q: " + str(len(self.q)))
+		print(self.board)
 
 	def add_child(self, move, child):
 		self.moves_to_child.append(move)
@@ -58,35 +59,40 @@ class Tree_node:
 
 	def generate_children(self):
 		# only recurse with the current piece if there is one but switch pieces always
-		self.generate_successor_states(self.current, self.held, False)
+		self.generate_successor_states()
 
 		# if there is a held piece, switch them
 		if self.held > -1:
-			self.generate_successor_states(self.held, self.current, True)
+			self.generate_successor_states(True)
 
-	def generate_successor_states(self, current_piece, held_piece, is_held):
+
+	def generate_successor_states(self, is_held=False):
 			# if the piece queue is empty
 			empty_q = len(self.q) == 0
 
+			current_piece = self.held if is_held else self.current
+			held_piece = self.current if is_held else self.held
+
 			for rotation in range(valid_rotations(current_piece)):
 
-				temp_piece = Block(board, current_piece, rotation)
+				temp_piece = Block(current_piece)
+				temp_piece.set_rotation(board, rotation)
 
-				for x in range(board.get_width() - temp_piece.get_width()):
-					for y in range(board.get_height() - temp_piece.get_height()):
+				for x in range(self.board.get_width() - temp_piece.get_width() + 1):
+					for y in range(self.board.get_height() - temp_piece.get_height() + 1):
 
 						# set the new piece offest
 						temp_piece.set_offset(x, y)
+						# print(str(x) + ", " + str(y))
 
-						# if it can move down, continue the loop
-						if not temp_piece.collides(0,1) and not occupied:
+						# if it can move down or it itersects with blocks already, continue the loop
+						if temp_piece.collides(self.board) or not temp_piece.collides(self.board, 0, 1):
 							continue
 
 						# create new child with move performed
-						new_board = board.get_copy()
-
-						temp_piece.set_board(new_board)
-						temp_piece.set()
+						new_board = self.board.get_copy()
+						temp_piece.set(new_board)
+						# print(new_board)
 
 						# TODO: determine if we need to prune the node or not
 
@@ -97,8 +103,11 @@ class Tree_node:
 							nq = deepcopy(self.q)
 							new_node = Tree_node(new_board, dequeue(nq), held_piece, nq)
 
+						new_node.print_node()
+
 						# calculate moves necessary
-						moveset = calculate_move(board, temp_piece)
+						# moveset = calculate_move(self.board, temp_piece)
+						moveset = [0]
 
 						# hold the piece if this is a hold
 						if is_held:
@@ -106,5 +115,17 @@ class Tree_node:
 
 						self.add_child(moveset, new_node)
 
-						# reset temp piece to be a new block
-						temp_piece = Block(board, current_piece, rotation)
+
+
+c = 0
+board = Board_Matrix()
+t = Tree_node(board, c, -1, [])
+
+t.generate_children()
+print(t.get_children())
+
+# b = Block(0)
+# print(b.get_height())
+# b.set(board)
+# print(board)
+# print(b.collides(board))

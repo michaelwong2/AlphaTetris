@@ -1,7 +1,7 @@
 # Board matrix
 
 class Board_Matrix:
-	def __init__(self, w, h, b=[], g=0):
+	def __init__(self, w=10, h=20, b=[], g=0):
 		self.width = w
 		self.height = h
 
@@ -159,3 +159,18 @@ class Board_Matrix:
 					self.set(x,y, self.lookup(x,y+1))
 
 		return True
+
+	def __str__(self):
+		
+		s = '' 
+
+		for y in range(self.height):
+
+			line = ''
+
+			for x in range(self.width):
+				line += str(self.lookup(x,y)) + ' ' if not self.is_empty(x,y) else '_ '
+
+			s += line + '\n'
+
+		return s
