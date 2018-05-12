@@ -60,7 +60,8 @@ class Tree_node:
 	def get_max_child(self):
 
 		if self.is_leaf():
-			# TODO return ranking
+			# TODO return ranking of leaf
+			# something like: return Ranker.terminus_rank(self.board)
 			return 1
 
 		mi = -1
@@ -81,7 +82,7 @@ class Tree_node:
 		self.generate_successor_states()
 
 		# if there is a held piece, switch them
-		if self.held > -1:
+		if self.held > -1 and self.held != self.current:
 			self.generate_successor_states(True)
 
 
@@ -116,11 +117,14 @@ class Tree_node:
 						# TODO: determine if we need to prune the node or not
 
 						# create a child node
+						nh = current_piece if is_held else held_piece
 						if empty_q:
-							new_node = Tree_node(new_board, -1, held_piece, [])
+							new_node = Tree_node(new_board, -1, nh, [])
 						else:
 							nq = deepcopy(self.q)
-							new_node = Tree_node(new_board, dequeue(nq), held_piece, nq)
+							nc = dequeue(nq)
+
+							new_node = Tree_node(new_board, nc, nh, nq)
 
 						new_node.print_node()
 
@@ -136,12 +140,12 @@ class Tree_node:
 
 
 
-c = 0
-board = Board_Matrix()
-t = Tree_node(board, c, -1, [])
+# c = 0
+# board = Board_Matrix()
+# t = Tree_node(board, c, -1, [])
 
-t.generate_children()
-print(t.get_children())
+# t.generate_children()
+# print(t.get_children())
 
 # b = Block(0)
 # print(b.get_height())

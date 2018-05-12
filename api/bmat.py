@@ -21,6 +21,10 @@ class Board_Matrix:
 			n = self.height - y
 			self.bheight = self.bheight if n < self.bheight else n
 
+	def set_matrix(self, m):
+		self.mat = m
+		self.calc_build_height()
+
 	def is_empty(self, x, y):
 		return self.mat[x][y] == None
 
