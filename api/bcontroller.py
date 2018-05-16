@@ -48,7 +48,11 @@ class Board_Controller:
 
 		h = self.held_piece
 		self.held_piece = self.current_piece.get_type()
-		self.current_piece = Block(h) if h != None else Block(dequeue(self.next_queue))
+
+		if h == None:
+			self.current_piece = Block(dequeue(self.next_queue))
+		else:
+			self.current_piece = Block(h)
 
 		self.can_hold = False
 
@@ -78,4 +82,3 @@ class Board_Controller:
 	# clear all lines that are complete
 	def clear_lines(self):
 		self.board.clear_lines()
-		
