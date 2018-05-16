@@ -3,8 +3,10 @@
 from random import randint
 import math
 
+#The t ATTRIBUTE of each block is initialized to INDEX one of these
 block_types = ['I', 'J', 'L', 'O', 'S', 'T', 'Z']
 
+#The loc_mat ATTRIBUTE of each block is initialized to be one of these
 block_mats = [
 
 	[[1],
@@ -36,8 +38,10 @@ block_mats = [
 	 [0,1]]
 ]
 
+#Number of unique rotations for each block type
 vrots = [2,4,4,1,2,4,2]
 
+#colors matching the block types
 colors = [
 	(31,185,253),
 	(24,73,196),
@@ -48,11 +52,14 @@ colors = [
 	(248,58,93)
 ]
 
+#@pre: block type
+#@post: block color
 def block_color(t):
 	if t <= -1:
-		return 
+		return
 	else:
 		return colors[t]
+
 
 def valid_rotations(t):
 	return vrots[t]
@@ -72,6 +79,7 @@ class Block:
 
 		self.set_offset(self.get_spawn())
 
+	#@post: set a piece on the board. Piece's location defined by its offset
 	def set(self, board):
 		try:
 			for x in range(self.inner_width):
@@ -87,10 +95,12 @@ class Block:
 						print("accessing " + str(self.off_x + x) + ", " + str(self.off_y + y))
 						board.set(self.off_x + x, self.off_y + y, self.t)
 
+	#@post: perform a rotation (can be more than 1 clockwise step)
 	def set_rotation(self, board, rotation):
 		for i in range(rotation - self.rot):
 			self.c_rotate(board)
 
+	#@post: get x-coordinate of the piece's spawn location/offset
 	def get_spawn(self, width=10):
 		return math.floor(width / 2) - math.ceil(self.inner_width/2)
 
@@ -103,13 +113,16 @@ class Block:
 	def get_height(self):
 		return len(self.loc_mat[0])
 
+	#@post: get current location of the piece
 	def get_offset(self):
 		return (self.off_x, self.off_y)
 
+	#@post: set current location of the piece
 	def set_offset(self, x, y=0):
 		self.off_x = x
 		self.off_y = y
 
+	#@post: given (x,y), return True if the coordinates intersect with part of the piece
 	def intersects(self, x, y):
 		if x >= self.off_x and x < self.off_x + self.inner_width and y >= self.off_y and y < self.off_y + self.inner_height:
 			dx = x - self.off_x
@@ -131,6 +144,7 @@ class Block:
 	def cc_rotate(self, board):
 		return self.rotate(board, False)
 
+	#@post: rotate the piece 1 step
 	def rotate(self, board, clockwise):
 		if clockwise:
 			self.rot = self.rot + 1 if self.rot < 3 else 0
@@ -168,6 +182,7 @@ class Block:
 		while self.d_translate(board):
 			pass
 
+	#@post: return True if there's something at distance (dx,dy) from the piece
 	def collides(self, b, dx=0, dy=0):
 		for ix in range(self.inner_width):
 			for iy in range(self.inner_height):

@@ -98,6 +98,9 @@ class Tetris:
 				next_move = dequeue(moves)
 				# print('Next move: ' + decode_move(next_move))
 				board.execute_move(next_move)
+				
+				if next_move == encode_move('hold'):
+					board.enqueue(self.pg.get_next())
 
 			if board.cannot_move_down():
 				# reset
