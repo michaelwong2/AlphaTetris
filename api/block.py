@@ -50,7 +50,7 @@ colors = [
 
 def block_color(t):
 	if t <= -1:
-		return (200,200,200)
+		return 
 	else:
 		return colors[t]
 
