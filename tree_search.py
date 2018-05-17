@@ -8,3 +8,7 @@ class Tetris_Search_Tree:
 
 	def create(self, board, current, held, next_queue):
 		self.root = Tree_node(board, current, held, next_queue)
+		self.root.generate_children()
+
+		for child in self.root.get_children():
+			pass
