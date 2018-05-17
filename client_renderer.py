@@ -99,6 +99,9 @@ class Tetris:
 				# print('Next move: ' + decode_move(next_move))
 				board.execute_move(next_move)
 
+				if next_move == encode_move('hold'):
+					board.enqueue(self.pg.get_next())
+
 			if board.cannot_move_down():
 				# reset
 				board.set_current()
@@ -191,7 +194,7 @@ class Tetris:
 				)
 
 		q = self.board.next_queue
-		print(q)
+		print(self.matrix)
 		ny = 2
 		for next_piece in q[:5]:
 			color = block_color(next_piece)

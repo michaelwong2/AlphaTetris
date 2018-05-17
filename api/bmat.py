@@ -9,8 +9,10 @@ class Board_Matrix:
 
 		self.gray_lines = g
 
+		#height of highest block on the board AKA build height
 		self.bheight = 0 if len(b) == 0 else self.calc_build_height()
 
+	#@post: return block at coordinate. -1 for grey block. 0-6 for blocks.
 	def lookup(self, x, y):
 		return self.mat[x][y]
 
@@ -59,6 +61,7 @@ class Board_Matrix:
 
 		return 0
 
+	#@post: return a string rep of matrix
 	def hash(self):
 		h = ''
 		for x in range(self.width):
@@ -72,7 +75,7 @@ class Board_Matrix:
 
 		return h
 
-	# get a copy of the instance
+	# get a copy of the board
 	def get_copy(self):
 		c = [[self.lookup(x,y) for y in range(self.height)] for x in range(self.width)]
 		return Board_Matrix(self.width, self.height, c, self.gray_lines)
@@ -100,7 +103,7 @@ class Board_Matrix:
 
 		return False
 
-	# add n = len(gaps) lines given an array of gaps of indeces
+	# add n = len(gaps) lines given an array of indices of gaps
 	def add_grays_with_gaps(self, gaps):
 		for gap in gaps:
 			if not self.add_gray_with_gap(gap):
@@ -165,8 +168,8 @@ class Board_Matrix:
 		return True
 
 	def __str__(self):
-		
-		s = '' 
+
+		s = ''
 
 		for y in range(self.height):
 
