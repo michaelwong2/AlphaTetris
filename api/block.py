@@ -88,8 +88,17 @@ class Block:
 						board.set(self.off_x + x, self.off_y + y, self.t)
 
 	def set_rotation(self, board, rotation):
-		for i in range(rotation - self.rot):
-			self.c_rotate(board)
+
+		spin = self.c_rotate if rotation > self.rot else self.cc_rotate
+
+		for i in range(abs(rotation - self.rot)):
+			if not spin(board):
+				return False
+
+		# print("new rot: " + str(rotation))
+		# print("old rot: " + str(self.rot))
+
+		return True
 
 	def get_spawn(self, width=10):
 		return math.floor(width / 2) - math.ceil(self.inner_width/2)
@@ -120,7 +129,7 @@ class Block:
 		return False
 
 	def get_rotation(self):
-		return self.rotation
+		return self.rot
 
 	def get_block_type(self):
 		return block_types[self.t]
@@ -165,8 +174,12 @@ class Block:
 		return False
 
 	def drop(self, board):
+		d = 0
+
 		while self.d_translate(board):
-			pass
+			d += 1
+
+		return d		
 
 	def collides(self, b, dx=0, dy=0):
 		for ix in range(self.inner_width):
@@ -223,6 +236,10 @@ class Block:
 		]
 
 		move_dict[move](board)
+
+	def execute_moves(self, moves, board):
+		for move in moves:
+			self.execute_move(move, board)
 
 	def valid_rotations(self):
 		return valid_rotations(self.type)
