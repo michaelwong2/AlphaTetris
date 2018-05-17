@@ -38,6 +38,23 @@ block_mats = [
 	 [0,1]]
 ]
 
+#order for clockwise rotations
+rot_translations = [
+	[(-1,1),(2,-1),(-2,2),(1,-2)],
+
+	[(0,0),(1,0),(-1,1),(0,-1)],
+
+	[(0,0),(1,0),(-1,1),(0,-1)],
+
+	[(0,0),(0,0),(0,0),(0,0)],
+
+	[(0,0),(1,0),(-1,1),(0,-1)],
+
+	[(0,0),(1,0),(-1,1),(0,-1)],
+
+	[(0,0),(1,0),(-1,1),(0,-1)]
+]
+
 #Number of unique rotations for each block type
 vrots = [2,4,4,1,2,4,2]
 
@@ -60,7 +77,6 @@ def block_color(t):
 	else:
 		return colors[t]
 
-
 def valid_rotations(t):
 	return vrots[t]
 
@@ -73,6 +89,7 @@ class Block:
 		self.rot = 0
 
 		self.loc_mat = block_mats[self.t]
+		self.rot_trans = rot_translations[self.t]
 
 		self.inner_width = len(self.loc_mat)
 		self.inner_height = len(self.loc_mat[0])
@@ -99,6 +116,9 @@ class Block:
 	def set_rotation(self, board, rotation):
 		for i in range(rotation - self.rot):
 			self.c_rotate(board)
+
+	def get_rot_trans(self,rotation):
+		return self.rot_trans[rotation]
 
 	#@post: get x-coordinate of the piece's spawn location/offset
 	def get_spawn(self, width=10):
@@ -147,23 +167,71 @@ class Block:
 	#@post: rotate the piece 1 step
 	def rotate(self, board, clockwise):
 		if clockwise:
-			self.rot = self.rot + 1 if self.rot < 3 else 0
+			rot = self.rot + 1 if self.rot < 3 else 0
 			new_mat = [[self.loc_mat[x][y] for x in range(self.inner_width)] for y in range(self.inner_height-1, -1, -1)]
 		else:
-			self.rot = self.rot - 1 if self.rot > 0 else 3
+			rot = self.rot - 1 if self.rot > 0 else 3
 			new_mat = [[self.loc_mat[x][y] for x in range(self.inner_width-1,-1,-1)] for y in range(self.inner_height)]
 
 		new_width = len(new_mat)
 		new_height = len(new_mat[0])
+		board_w = board.get_width()
+		board_h = board.get_height()
 
-		if self.collides(board):
+		#find possible new offset (x,y)
+		rot_trans = self.get_rot_trans(rot)
+		new_off_x = self.off_x + rot_trans[0]
+		new_off_y = self.off_y + rot_trans[1]
+		if new_off_x < 0:
+			new_off_x = 0
+		elif new_off_x + new_width >= board_w:
+			new_off_x = board_w - new_width
+
+		#handle Wall Kick
+		#move offset around if needed
+		wall_kick = self.rot_collides(board,new_mat,new_width,new_height,new_off_x,new_off_y)
+		if wall_kick == 1:
+			new_off_x += 1
+		elif wall_kick == -1:
+			new_off_x -= 1
+
+		if new_off_x + new_width >= board_w:
+			new_off_x = board_w - new_width
+		if self.rot_collides(board,new_mat,new_width,new_height,new_off_x,new_off_y) != 0:
 			return False
 
+		self.off_x = new_off_x
+		self.off_y = new_off_y
+
 		self.loc_mat = new_mat
+		self.rot = rot
 		self.inner_width = new_width
 		self.inner_height = new_height
 
 		return True
+
+	#@post: return 0 if it's possible to fit this new rotation
+	# return a positive integer indicating how much right the piece needs to move
+	# return a negative integer indicating how much left the piece needs to move
+	def rot_collides(self, board, new_mat, new_width, new_height, new_off_x, new_off_y):
+		#move = 0
+		#move_left = True
+		for ix in range(new_width):
+			for iy in range(new_height):
+
+				if new_mat[ix][iy] == 0:
+					continue
+
+				x = new_off_x + ix
+				y = new_off_y + iy
+
+				if not board.is_empty(x,y):
+					if ix == 0:
+						return 1
+					else:
+						return -1
+
+		return 0
 
 	def l_translate(self, board):
 		return self.move(board, -1)
