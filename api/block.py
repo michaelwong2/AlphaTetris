@@ -39,7 +39,7 @@ block_mats = [
 ]
 
 #order for clockwise rotations
-rot_translations = [
+crot_translations = [
 	[(-1,1),(2,-1),(-2,2),(1,-2)],
 
 	[(0,0),(1,0),(-1,1),(0,-1)],
@@ -53,6 +53,23 @@ rot_translations = [
 	[(0,0),(1,0),(-1,1),(0,-1)],
 
 	[(0,0),(1,0),(-1,1),(0,-1)]
+]
+
+#order for counter-clockwise rotations
+ccrot_translations = [
+	[(-2,1),(2,-2),(-1,2),(1,-1)],
+
+	[(-1,0),(1,-1),(0,1),(0,0)],
+
+	[(-1,0),(1,-1),(0,1),(0,0)],
+
+	[(0,0),(0,0),(0,0),(0,0)],
+
+	[(-1,0),(1,-1),(0,1),(0,0)],
+
+	[(-1,0),(1,-1),(0,1),(0,0)],
+
+	[(-1,0),(1,-1),(0,1),(0,0)]
 ]
 
 #Number of unique rotations for each block type
@@ -89,7 +106,8 @@ class Block:
 		self.rot = 0
 
 		self.loc_mat = block_mats[self.t]
-		self.rot_trans = rot_translations[self.t]
+		self.crot_trans = crot_translations[self.t]
+		self.ccrot_trans = ccrot_translations[self.t]
 
 		self.inner_width = len(self.loc_mat)
 		self.inner_height = len(self.loc_mat[0])
@@ -115,6 +133,11 @@ class Block:
 	#@post: perform a rotation (can be more than 1 clockwise step)
 	def set_rotation(self, board, rotation):
 
+		if self.rot == 3 and rotation == 0:
+			return self.c_rotate(board)
+		elif self.rot == 0 and rotation == 3:
+			return self.cc_rotate(board)
+
 		spin = self.c_rotate if rotation > self.rot else self.cc_rotate
 
 		for i in range(abs(rotation - self.rot)):
@@ -123,8 +146,11 @@ class Block:
 
 		return True
 
-	def get_rot_trans(self,rotation):
-		return self.rot_trans[rotation]
+	def get_crot_trans(self,rotation):
+		return self.crot_trans[rotation]
+
+	def get_ccrot_trans(self,rotation):
+		return self.ccrot_trans[rotation]
 
 	#@post: get x-coordinate of the piece's spawn location/offset
 	def get_spawn(self, width=10):
@@ -170,28 +196,45 @@ class Block:
 	def cc_rotate(self, board):
 		return self.rotate(board, False)
 
+	# very dirty
+	def dirty_reset_position(self, nx, ny, rotation):
+		for i in range(abs(self.rot - rotation)):
+			self.loc_mat = [[self.loc_mat[x][y] for x in range(self.inner_width-1,-1,-1)] for y in range(self.inner_height)]
+			self.inner_width = len(self.loc_mat)
+			self.inner_height = len(self.loc_mat[0])
+
+		self.rot = rotation
+		self.off_x = nx
+		self.off_y = ny
+
 	#@post: rotate the piece 1 step
 	def rotate(self, board, clockwise):
 		if clockwise:
 			rot = self.rot + 1 if self.rot < 3 else 0
 			new_mat = [[self.loc_mat[x][y] for x in range(self.inner_width)] for y in range(self.inner_height-1, -1, -1)]
+			rot_trans = self.get_crot_trans(rot)
 		else:
 			rot = self.rot - 1 if self.rot > 0 else 3
 			new_mat = [[self.loc_mat[x][y] for x in range(self.inner_width-1,-1,-1)] for y in range(self.inner_height)]
+			rot_trans = self.get_ccrot_trans(rot)
 
 		new_width = len(new_mat)
 		new_height = len(new_mat[0])
 		board_w = board.get_width()
 		board_h = board.get_height()
 
-		#find possible new offset (x,y)
-		rot_trans = self.get_rot_trans(rot)
+		#find new offset after rotation
 		new_off_x = self.off_x + rot_trans[0]
 		new_off_y = self.off_y + rot_trans[1]
-		if new_off_x < 0:
-			new_off_x = 0
-		elif new_off_x + new_width >= board_w:
-			new_off_x = board_w - new_width
+
+		if self.off_x == 0 and self.off_y == 14:
+			print("New off x",new_off_x)
+			print("New off y",new_off_y)
+
+		#if new_off_x < 0:
+		#	new_off_x = 0
+		#elif new_off_x + new_width >= board_w:
+		#	new_off_x = board_w - new_width
 
 		#handle Wall Kick
 		#move offset around if needed
@@ -199,11 +242,13 @@ class Block:
 
 		if wall_kick == 1:
 			new_off_x += 1
+			new_off_y += 1
 		elif wall_kick == -1:
 			new_off_x -= 1
+			new_off_y += 1
 
-		if new_off_x + new_width >= board_w:
-			new_off_x = board_w - new_width
+		#if new_off_x + new_width >= board_w:
+		#	new_off_x = board_w - new_width
 
 		if self.rot_collides(board,new_mat,new_width,new_height,new_off_x,new_off_y) != 0:
 			return False
@@ -222,8 +267,6 @@ class Block:
 	# return a positive integer indicating how much right the piece needs to move
 	# return a negative integer indicating how much left the piece needs to move
 	def rot_collides(self, board, new_mat, new_width, new_height, new_off_x, new_off_y):
-		#move = 0
-		#move_left = True
 		for ix in range(new_width):
 			for iy in range(new_height):
 
@@ -260,7 +303,7 @@ class Block:
 		while self.d_translate(board):
 			d += 1
 
-		return d		
+		return d
 
 	#@post: return True if there's something at distance (dx,dy) from the piece
 	def collides(self, b, dx=0, dy=0):
