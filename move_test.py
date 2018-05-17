@@ -5,6 +5,7 @@ from api.block import Block
 from api.utils import encode_move, decode_move
 from tree_components import Tree_node
 from test_utils import format_bmat
+from Ranker import Ranker
 
 
 b= [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
@@ -33,7 +34,8 @@ t = Tree_node(format_bmat(b), c, -1, [])
 
 t.generate_children()
 
+# ranker = Ranker()
+
 for c in t.get_children():
 	c.print_node()
-
-print(len(t.get_children()))
+	# ranker.rank(c.get_board())

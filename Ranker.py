@@ -36,26 +36,33 @@ class Ranker:
         return holes
 
     def heur_hole_depth(self, board):
+
         heights = self.column_heights(board)
         holes = self.pos_holes(board)
         depthSum = 0
+
         for i in holes:
             depthSum += heights[i[0]] - i[1]
+            
         return depthSum
 
-    def neighbors(self, list, x, y):
-        if (x, y+1) in list:
-            list.remove((x, y+1))
-            self.neighbors(list, x, y+1)
-        if (x+1, y) in list:
-            list.remove((x+1, y))
-            self.neighbors(list, x+1, y)
+    def neighbors(self, l, x, y):
+
+        if (x, y+1) in l:
+            l.remove((x, y+1))
+            self.neighbors(l, x, y+1)
+
+        if (x+1, y) in l:
+            l.remove((x+1, y))
+            self.neighbors(l, x+1, y)
+
         if (x, y-1) in list:
-            list.remove((x, y-1))
-            self.neighbors(list, x, y-1)
-        if (x-1, y) in list:
-            list.remove((x-1, y))
-            self.neighbors(list, x-1, y)
+            l.remove((x, y-1))
+            self.neighbors(l, x, y-1)
+
+        if (x-1, y) in l:
+            l.remove((x-1, y))
+            self.neighbors(l, x-1, y)
 
     def heur_hole_clump(self, board):
         holes = self.pos_holes(board)
@@ -66,32 +73,32 @@ class Ranker:
         return clumpHoles
 
 
-    def rank_value(self, board):
+    def rank(self, board):
         value = self.heur_hole_clump(board)
         return float(value/100)
 
-#testing utilities
-m = [
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-[1, 0, 0, 1, 1, 1, 1, 0, 1, 1],
-[1, 1, 0, 0, 1, 1, 1, 1, 1, 1],
-[1, 1, 1, 0, 0, 0, 1, 1, 1, 1],
-[1, 1, 1, 1, 0, 0, 1, 1, 1, 1],
-[1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
+# testing utilities
+# m = [
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+# [1, 0, 0, 1, 1, 1, 1, 0, 1, 1],
+# [1, 1, 0, 0, 1, 1, 1, 1, 1, 1],
+# [1, 1, 1, 0, 0, 0, 1, 1, 1, 1],
+# [1, 1, 1, 1, 0, 0, 1, 1, 1, 1],
+# [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
 
-r = Ranker()
-print(r.rank_value(format_bmat(m)))
+# r = Ranker()
+# print(r.rank_value(format_bmat(m)))

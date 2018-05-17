@@ -1,56 +1,56 @@
-# search tree components
+# Components of the search tree
+# Tree node class
+
 from copy import deepcopy
 from api.block import Block, valid_rotations
 from api.utils import dequeue, encode_move, neg_inf
 from api.bmat import Board_Matrix
 from queue import Queue
 
-def dedropify(moves, y):
-
-	l = len(moves) - 1
-
-	moves_copy = deepcopy(moves)
-
-	if moves[l] == encode_move('drop'):
-		moves_copy = moves_copy[:l] + [encode_move('down') for i in range(y)]
-
-	return moves_copy
-
 def generate_successor_states(board, piece_type):
-
+	# number of unique rotations per piece
 	r = valid_rotations(piece_type)
 
+	# store all possible positions in a queue
 	pos = Queue()
+	# 3D memo for later ;)
 	memo = [[[0 for z in range(r)] for y in range(board.get_height())] for x in range(board.get_width())]
 
+	# for each unique rotation
 	for rotation in range(r):
-
+		# construct a temporary piece
 		temp_piece = Block(piece_type)
 		temp_piece.set_rotation(board, rotation)
 
+		# get the next offset after rotating
 		sx = temp_piece.get_offset()[0]
 
+		# for each horizontal position
 		for x in range(board.get_width() - temp_piece.get_width() + 1):
 
+			# shift the piece horizontally
 			temp_piece.set_offset(x, 0)
-
 			if temp_piece.collides(board): 
 				continue
 
+			# drop
 			temp_piece.drop(board)
 
+			# get final position
 			tx, ty = temp_piece.get_offset()
 
+			# memoize
 			memo[tx][ty][rotation] = 1
-			print(str(tx) + ", " + str(ty) + ", " + str(rotation))
+			# print(str(tx) + ", " + str(ty) + ", " + str(rotation))
 
+			# encode moves
 			moves = [encode_move('crot') for i in range(rotation)] + [encode_move('left') if x - sx < 0 else encode_move('right') for i in range(abs(x-sx))] + [encode_move('drop')]
 
+			# enqueue
 			pos.put((tx, ty, rotation, moves))
 
+	# the final set to return
 	children = []
-
-	print("--------------------")
 
 	# while the queue still contains positions
 	while not pos.empty():
@@ -60,10 +60,7 @@ def generate_successor_states(board, piece_type):
 		# add to final bag
 		children.append(child)
 
-		x = child[0]
-		y = child[1]
-		rot = child[2]
-		moves = child[3]
+		x, y, rot, moves = child
 
 		# make a block and put it into the correct place
 		test_piece = Block(piece_type)
@@ -76,30 +73,16 @@ def generate_successor_states(board, piece_type):
 		# for each partial movement
 		for npos in next_positions: 
 
-			dx = npos[0]
-			dy = npos[1]
-			nr = npos[2]
+			# quick access variables
+			dx, dy, nr = npos
 
 			# rotate the piece for the new rotation, if possibe, else its invalid so skip
 			if not test_piece.set_rotation(board, nr):
 				continue
 
+			# translate the piece right or left or skip if invalid
 			if (dx > 0 and not test_piece.r_translate(board)) or (dx < 0 and not test_piece.l_translate(board)):
 				continue
-
-			# # set the offset
-			# test_piece.set_offset(dx, dy)
-
-			# print(test_piece.loc_mat)
-
-			# track gravity movement
-			# down = 0
-			# # if the piece is not valid, continue
-			# if test_piece.collides(board):
-			# 	continue
-			# # apply gravity
-			# elif not test_piece.collides(board, 0, 1):
-			# 	down = test_piece.drop(board)
 
 			# apply gravity
 			down = test_piece.drop(board)
@@ -107,26 +90,27 @@ def generate_successor_states(board, piece_type):
 			# get updated locations
 			nx, ny = test_piece.get_offset()
 
-			# print((nx, ny))
-
-			# if the movement is out of bounds, skip
-			# if not board.in_bounds(nx, ny): 
-			# 	continue
-
 			# check that the move was not already encoded
 			if memo[nx][ny][nr] == 1:
 				continue
 
-			print(str(nx) + ", " + str(ny) + ", " + str(nr))
+			# print(str(nx) + ", " + str(ny) + ", " + str(nr))
 
-			# copy moves and convert drops to down movements because this is more minute
-			nmoves = dedropify(moves, y)
+			# now encode additional movements
+			# copy moves and convert drops to down movements because this is more meticulous
+
+			nmoves = deepcopy(moves)
+
+			# convert drops to down moves
+			l = len(moves) - 1
+			if moves[l] == encode_move('drop'):
+				nmoves = nmoves[:l] + [encode_move('down') for i in range(y)]
 
 			# genreate additional horizontal movements
 			if dx != 0:
 				nmoves.append(encode_move('left') if dx == -1 else encode_move('right'))
 
-			# generate rotations
+			# generate rotation movements
 			dr = nr - rot
 			if dr != 0:
 				nmoves += [encode_move('crot') if dr > 0 else encode_move('ccrot') for i in range(dr)]
@@ -140,6 +124,7 @@ def generate_successor_states(board, piece_type):
 			# mark this new space as visited, too
 			memo[nx][ny][nr] = 1
 
+			# undo moves
 			test_piece.set_rotation(board, rot)
 			
 			if dx > 0:
@@ -200,8 +185,8 @@ class Tree_node:
 	def get_max_child(self):
 
 		if self.is_leaf():
-			# TODO return ranking of leaf
-			# something like: return Ranker.terminus_rank(self.board)
+			# return ranking of leaf
+			# return ranker.rank(self.board)
 			return 1
 
 		mi = -1
@@ -220,11 +205,22 @@ class Tree_node:
 	def generate_children(self):
 		# only recurse with the current piece if there is one but switch pieces always
 		children = generate_successor_states(self.board, self.current)
-		print(children)
 		self.make_nodes(children, self.current, False)
 
-		# if there is a held piece, switch them
-		if self.held > -1 and self.held != self.current:
+		# if the held piece is not the current piece, switch
+		if self.held != self.current:
+
+			# if there is no held piece and the queue is not empty
+			# create a branch with the current piece held and the next piece dequeued
+			if self.held == -1:
+				if len(self.q) == 0:
+					return
+				else:
+					new_q = [] if len(self.q) < 2 else deepcopy(self.q)[1:]
+					new_node = Tree_node(self.board.get_copy(), self.q[0], self.current, new_q)
+					self.add_child([encode_move('hold')], new_node)
+
+			# switch those pieces
 			held_children += generate_successor_states(self.board, self.held)
 			self.make_nodes(held_children, self.held, False)
 
@@ -232,10 +228,7 @@ class Tree_node:
 
 		for child in children:
 
-			x = child[0]
-			y = child[1]
-			rotation = child[2]
-			moveset = child[3]
+			x, y, rot, moveset = child
 
 			new_board = self.board.get_copy()
 
