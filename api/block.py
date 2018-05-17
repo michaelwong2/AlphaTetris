@@ -114,8 +114,17 @@ class Block:
 
 	#@post: perform a rotation (can be more than 1 clockwise step)
 	def set_rotation(self, board, rotation):
-		for i in range(rotation - self.rot):
-			self.c_rotate(board)
+
+		spin = self.c_rotate if rotation > self.rot else self.cc_rotate
+
+		for i in range(abs(rotation - self.rot)):
+			if not spin(board):
+				return False
+
+		# print("new rot: " + str(rotation))
+		# print("old rot: " + str(self.rot))
+
+		return True
 
 	def get_rot_trans(self,rotation):
 		return self.rot_trans[rotation]
@@ -153,7 +162,7 @@ class Block:
 		return False
 
 	def get_rotation(self):
-		return self.rotation
+		return self.rot
 
 	def get_block_type(self):
 		return block_types[self.t]
@@ -247,8 +256,12 @@ class Block:
 		return False
 
 	def drop(self, board):
+		d = 0
+
 		while self.d_translate(board):
-			pass
+			d += 1
+
+		return d		
 
 	#@post: return True if there's something at distance (dx,dy) from the piece
 	def collides(self, b, dx=0, dy=0):
@@ -306,6 +319,10 @@ class Block:
 		]
 
 		move_dict[move](board)
+
+	def execute_moves(self, moves, board):
+		for move in moves:
+			self.execute_move(move, board)
 
 	def valid_rotations(self):
 		return valid_rotations(self.type)
