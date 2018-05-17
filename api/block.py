@@ -121,9 +121,6 @@ class Block:
 			if not spin(board):
 				return False
 
-		# print("new rot: " + str(rotation))
-		# print("old rot: " + str(self.rot))
-
 		return True
 
 	def get_rot_trans(self,rotation):
@@ -198,7 +195,8 @@ class Block:
 
 		#handle Wall Kick
 		#move offset around if needed
-		wall_kick = self.rot_collides(board,new_mat,new_width,new_height,new_off_x,new_off_y)
+		wall_kick = self.rot_collides(board, new_mat, new_width, new_height, new_off_x, new_off_y)
+
 		if wall_kick == 1:
 			new_off_x += 1
 		elif wall_kick == -1:
@@ -206,6 +204,7 @@ class Block:
 
 		if new_off_x + new_width >= board_w:
 			new_off_x = board_w - new_width
+
 		if self.rot_collides(board,new_mat,new_width,new_height,new_off_x,new_off_y) != 0:
 			return False
 
@@ -234,7 +233,7 @@ class Block:
 				x = new_off_x + ix
 				y = new_off_y + iy
 
-				if not board.is_empty(x,y):
+				if not board.in_bounds(x, y) or not board.is_empty(x, y):
 					if ix == 0:
 						return 1
 					else:

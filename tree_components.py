@@ -80,12 +80,6 @@ def generate_successor_states(board, piece_type):
 			dy = npos[1]
 			nr = npos[2]
 
-			# if the movement is out of bounds, skip
-			if not board.in_bounds(x + dx, y + dy): 
-				continue
-
-			# print("***\nRalph " + str(nr))
-
 			# rotate the piece for the new rotation, if possibe, else its invalid so skip
 			if not test_piece.set_rotation(board, nr):
 				continue
@@ -112,6 +106,12 @@ def generate_successor_states(board, piece_type):
 
 			# get updated locations
 			nx, ny = test_piece.get_offset()
+
+			# print((nx, ny))
+
+			# if the movement is out of bounds, skip
+			# if not board.in_bounds(nx, ny): 
+			# 	continue
 
 			# check that the move was not already encoded
 			if memo[nx][ny][nr] == 1:
