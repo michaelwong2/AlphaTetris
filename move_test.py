@@ -30,6 +30,7 @@ b= [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 	[0, 0, 0, 1, 1, 0, 1, 1, 1, 1]]
 #'''
 c = 5
+board = format_bmat(b)
 t = Tree_node(format_bmat(b), c, -1, [])
 
 t.generate_children()
