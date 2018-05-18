@@ -5,7 +5,11 @@ from tree_components import Tree_node
 from Ranker import Ranker
 from test_utils import format_bmat
 
+
 class Tetris_Search_Tree:
+	def __init__(self):
+		self.ranker = Ranker()
+
 	def get_root(self):
 		return self.root
 
@@ -22,7 +26,7 @@ class Tetris_Search_Tree:
 
 	def create(self, board, current, held, next_queue):
 
-		self.root = Tree_node(board, current, held, next_queue, 0, 0, -1)
+		self.root = Tree_node(board, current, held, next_queue, 0, 0, -1, self.ranker)
 		self.root.fill()
 
 	def generate_next_layer(self, next_piece):
@@ -60,9 +64,11 @@ for c in t.get_root().get_children():
 	c.print_node()
 	print(c.get_rank())
 
-# maxc, ind = t.get_root().get_max_child()
-# print("rank", maxc)
-# t.get_root().get_child(ind).print_node()
+print("**************")
+
+maxc, ind = t.get_root().get_max_child()
+print("rank", maxc)
+t.get_root().get_child(ind).print_node()
 
 # c = t.get_last_layer()
 # dad = c[len(c)-1]

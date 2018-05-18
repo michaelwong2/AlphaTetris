@@ -9,7 +9,6 @@ from queue import Queue
 from api.points import * 
 from Ranker import Ranker
 
-ranker = Ranker()
 
 def generate_successor_states(board, piece_type):
 	# number of unique rotations per piece
@@ -26,8 +25,6 @@ def generate_successor_states(board, piece_type):
 		temp_piece = Block(piece_type)
 		temp_piece.set_rotation(board, rotation)
 
-		# print(temp_piece.loc_mat)
-		# print(rotation)
 
 		# get the next offset after rotating
 		sx = temp_piece.get_offset()[0]
@@ -59,13 +56,11 @@ def generate_successor_states(board, piece_type):
 
 	# the final set to return
 	children = []
-	#i = 0
 
 	# while the queue still contains positions
 	while not pos.empty():
-		#i += 1
+
 		child = pos.get()
-		#print("Child",i,":",child)
 
 		# add to final bag
 		children.append(child)
@@ -108,8 +103,6 @@ def generate_successor_states(board, piece_type):
 				test_piece.dirty_reset_position(o_off_x, o_off_y, rot)
 				continue
 
-			# print(str(nx) + ", " + str(ny) + ", " + str(nr))
-
 			# now encode additional movements
 			# copy moves and convert drops to down movements because this is more meticulous
 
@@ -148,7 +141,7 @@ def generate_successor_states(board, piece_type):
 
 
 class Tree_node:
-	def __init__(self, board, current, held, q, lines_sent, combos_so_far, last_combo_id):
+	def __init__(self, board, current, held, q, lines_sent, combos_so_far, last_combo_id, ranker):
 
 		self.board = board
 		self.current = current
@@ -158,6 +151,8 @@ class Tree_node:
 		self.lines_sent = lines_sent
 		self.combos_so_far = combos_so_far
 		self.last_combo_id = last_combo_id
+
+		self.ranker = ranker
 
 		self.moves_to_child = []
 		self.children = []
@@ -193,7 +188,7 @@ class Tree_node:
 		return self.children[i]
 
 	def get_rank(self):
-		return 1 - ranker.rank(self.board)
+		return 1 - self.ranker.rank(self.board)
 
 	def moves_to_child(self, i):
 		return self.moves_to_child[i]
@@ -247,8 +242,7 @@ class Tree_node:
 
 		if self.is_leaf():
 			# return ranking of leaf
-			# return ranker.rank(self.board)
-			return (1.0,0)
+			return (self.get_rank(), 0)
 
 		mi = -1
 		ma = 0
@@ -280,7 +274,7 @@ class Tree_node:
 			# if self.held == -1:
 			if len(self.q) > 0:
 				new_q = [] if len(self.q) < 2 else deepcopy(self.q)[1:]
-				new_node = Tree_node(self.board.get_copy(), self.q[0], self.current, new_q, self.lines_sent, self.combos_so_far, self.last_combo_id)
+				new_node = Tree_node(self.board.get_copy(), self.q[0], self.current, new_q, self.lines_sent, self.combos_so_far, self.last_combo_id, self.ranker)
 				self.add_child([encode_move('hold')], new_node)
 
 				# return
@@ -330,6 +324,7 @@ class Tree_node:
 								new_q,
 								new_lines,
 								new_combos_so_far,
-								combo_id)
+								combo_id,
+								self.ranker)
 
 			self.add_child(([encode_move('hold')] if is_held else []) + moveset, new_node)
