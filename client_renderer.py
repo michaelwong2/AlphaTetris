@@ -194,7 +194,7 @@ class Tetris:
 				)
 
 		q = self.board.next_queue
-		print(self.matrix)
+
 		ny = 2
 		for next_piece in q[:5]:
 			color = block_color(next_piece)
