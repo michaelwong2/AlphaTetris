@@ -35,10 +35,3 @@ t = Tree_node(format_bmat(b), c, -1, [])
 
 t.generate_children()
 
-for d in t.get_children():
-	d.print_node()
-
-# a = Block(0)
-# print("w:" , a.get_width(), " h: ", a.get_height())
-# a.set_rotation(Board_Matrix(), 1)
-# print("w:", a.get_width(), " h: ", a.get_height())
