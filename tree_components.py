@@ -30,7 +30,7 @@ def generate_successor_states(board, piece_type):
 
 			# shift the piece horizontally
 			temp_piece.set_offset(x, 0)
-			if temp_piece.collides(board): 
+			if temp_piece.collides(board):
 				continue
 
 			# drop
@@ -55,7 +55,7 @@ def generate_successor_states(board, piece_type):
 	# while the queue still contains positions
 	while not pos.empty():
 
-		child = pos.get() 
+		child = pos.get()
 
 		# add to final bag
 		children.append(child)
@@ -65,13 +65,13 @@ def generate_successor_states(board, piece_type):
 		# make a block and put it into the correct place
 		test_piece = Block(piece_type)
 		test_piece.execute_moves(moves, board)
-		
+
 		# generate partial movements from this position, i.e. left, right, and all rotations
 		# stored in tuples like so (dx, dy, dr)
 		next_positions = [(1, 0, rot), (-1, 0, rot)] + [(0,0,i) for i in range(r)]
 
 		# for each partial movement
-		for npos in next_positions: 
+		for npos in next_positions:
 
 			# quick access variables
 			dx, dy, nr = npos
@@ -126,7 +126,7 @@ def generate_successor_states(board, piece_type):
 
 			# undo moves
 			test_piece.set_rotation(board, rot)
-			
+
 			if dx > 0:
 				temp_piece.l_translate(board)
 			elif dx < 0:
@@ -244,5 +244,3 @@ class Tree_node:
 			new_node = Tree_node(new_board, -1 if len(self.q) == 0 else self.q[0], self.current if is_held else self.held, new_q)
 
 			self.add_child(([encode_move('hold')] if is_held else []) + moveset, new_node)
-
-
