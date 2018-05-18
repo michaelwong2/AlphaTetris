@@ -43,7 +43,7 @@ class Ranker:
 
         for i in holes:
             depthSum += heights[i[0]] - i[1]
-            
+
         return depthSum
 
     def neighbors(self, l, x, y):
@@ -56,7 +56,7 @@ class Ranker:
             l.remove((x+1, y))
             self.neighbors(l, x+1, y)
 
-        if (x, y-1) in list:
+        if (x, y-1) in l:
             l.remove((x, y-1))
             self.neighbors(l, x, y-1)
 
