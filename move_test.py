@@ -34,17 +34,17 @@ t = Tree_node(format_bmat(b), c, -1, [])
 
 t.generate_children()
 
-
-# for c in t.get_children():
-# 	c.print_node()
+children = t.get_children()
+for c in children:
+	c.print_node()
+print("Number of children:",len(children))
 
 '''
 board = format_bmat(b)
 t_block = Block(5)
-t_block.set_rotation(board,3)
-t_block.set_offset(1,17)
-print("----------")
-print(t_block.set_rotation(board,0))
+t_block.dirty_reset_position(4,17,3)
+# t_block.set_offset(3,5)
+print(t_block.set_rotation(board,2))
 t_block.set(board)
 print(board)
 '''

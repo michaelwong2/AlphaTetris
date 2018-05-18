@@ -41,7 +41,8 @@ def generate_successor_states(board, piece_type):
 
 			# memoize
 			memo[tx][ty][rotation] = 1
-			# print(str(tx) + ", " + str(ty) + ", " + str(rotation))
+
+			#print(str(tx) + ", " + str(ty) + ", " + str(rotation))
 
 			# encode moves
 			moves = [encode_move('crot') for i in range(rotation)] + [encode_move('left') if x - sx < 0 else encode_move('right') for i in range(abs(x-sx))] + [encode_move('drop')]
@@ -57,7 +58,8 @@ def generate_successor_states(board, piece_type):
 	while not pos.empty():
 		i += 1
 		child = pos.get()
-		# print("Child ",i,":",child)
+		#print("Child",i,":",child)
+
 		# add to final bag
 		children.append(child)
 
@@ -68,41 +70,21 @@ def generate_successor_states(board, piece_type):
 		test_piece.execute_moves(moves, board)
 
 		o_off_x, o_off_y = test_piece.get_offset()
-		# print("original offest", test_piece.get_offset())
 
 		# generate partial movements from this position, i.e. left, right, and all rotations
-		# stored in tuples like so (dx, dy, dr)
+		# stored in tuples like so (dx, dy, nr)
 		next_positions = [(1, 0, rot), (-1, 0, rot)] + [(0,0,i) for i in range(r)]
 
 		# for each partial movement
 		for npos in next_positions:
-
 			# quick access variables
 			dx, dy, nr = npos
-
-			#print("dx:",dx,", dy:",dy,",nr:",nr)
-			# print("current offset", test_piece.get_offset())
 
 			# rotate the piece for the new rotation, if possibe, else its invalid so skip
 			if not test_piece.set_rotation(board, nr):
 				continue
 
 			offset = test_piece.get_offset()
-
-			# if (x,y) == (0,14) and rot == 3 and npos == (0,0,0):
-			# 	print("This is dad")
-			# 	print(npos)
-			# 	#
-			# 	print(test_piece.get_offset())
-			# 	print(offset)
-
-				# test_piece.set(board)
-				# print(board)
-
-				# return []
-
-			if offset == (0,18) and nr == 0:
-				print("This is a T-spin: %d, %d, %d" % (offset[0],offset[1],nr))
 
 			# translate the piece right or left or skip if invalid
 			if (dx > 0 and not test_piece.r_translate(board)) or (dx < 0 and not test_piece.l_translate(board)):
@@ -113,9 +95,6 @@ def generate_successor_states(board, piece_type):
 
 			# get updated locations
 			nx, ny = test_piece.get_offset()
-
-			if offset == (1,17) and nr == 0:
-				print("Current location after T-spinning: (%d,%d)" % (nx,ny))
 
 			# check that the move was not already encoded
 			if memo[nx][ny][nr] == 1:
@@ -140,10 +119,11 @@ def generate_successor_states(board, piece_type):
 
 			# generate rotation movements
 			dr = nr - rot
+			#print("rotations:",dr)
 			if rot == 3 and nr == 0:
 				nmoves += [encode_move('crot')]
 			elif dr != 0:
-				nmoves += [encode_move('crot') if dr > 0 else encode_move('ccrot') for i in range(dr)]
+				nmoves += [encode_move('crot') if dr > 0 else encode_move('ccrot') for i in range(abs(dr))]
 
 			# generate additional down movements
 			nmoves += [encode_move('down') for i in range(down)]
@@ -155,14 +135,7 @@ def generate_successor_states(board, piece_type):
 			memo[nx][ny][nr] = 1
 
 			# undo moves
-			print("before", test_piece.get_offset())
 			test_piece.dirty_reset_position(o_off_x, o_off_y, rot)
-			print("after", test_piece.get_offset())
-
-			# if dx > 0:
-			# 	test_piece.l_translate(board)
-			# elif dx < 0:
-			# 	test_piece.r_translate(board)
 
 	return children
 

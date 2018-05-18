@@ -199,7 +199,7 @@ class Block:
 	# very dirty
 	def dirty_reset_position(self, nx, ny, rotation):
 		for i in range(abs(self.rot - rotation)):
-			self.loc_mat = [[self.loc_mat[x][y] for x in range(self.inner_width-1,-1,-1)] for y in range(self.inner_height)]
+			self.loc_mat = [[self.loc_mat[x][y] for x in range(self.inner_width)] for y in range(self.inner_height-1, -1, -1)]
 			self.inner_width = len(self.loc_mat)
 			self.inner_height = len(self.loc_mat[0])
 
@@ -227,9 +227,9 @@ class Block:
 		new_off_x = self.off_x + rot_trans[0]
 		new_off_y = self.off_y + rot_trans[1]
 
-		if self.off_x == 0 and self.off_y == 14:
-			print("New off x",new_off_x)
-			print("New off y",new_off_y)
+		# if self.off_x == 0 and self.off_y == 14:
+		# 	print("New off x",new_off_x)
+		# 	print("New off y",new_off_y)
 
 		#if new_off_x < 0:
 		#	new_off_x = 0
