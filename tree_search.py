@@ -2,11 +2,10 @@
 
 from api.bmat import Board_Matrix
 from tree_components import Tree_node
+from Ranker import Ranker
+from test_utils import format_bmat
 
 class Tetris_Search_Tree:
-	def __init__(self):
-		self.last_layer = []
-
 	def get_root(self):
 		return self.root
 
@@ -23,54 +22,47 @@ class Tetris_Search_Tree:
 
 	def create(self, board, current, held, next_queue):
 
-		self.root = Tree_node(board, current, held, next_queue)
-		self.root.generate_children()
-		self.last_layer = self.root.get_children()
-
-		is_last_layer = False
-
-		while not is_last_layer:
-
-			is_last_layer = True
-
-			l = []
-
-			for node in self.last_layer:
-
-				if node.is_leaf():
-					l.append(node)
-					continue
-
-				node.generate_children()
-				l += node.get_children()
-
-				is_last_layer = not node.is_penultimate()
-
-			self.last_layer = l
-
+		self.root = Tree_node(board, current, held, next_queue, 0, 0, -1)
+		self.root.fill()
 
 	def generate_next_layer(self, next_piece):
-
-		new_layer = []
-
-		for node in self.last_layer:
-
-			node.enqueue(next_piece)
-
-			node.generate_children()
-			new_layer.append(node.generate_next_layer)
-
-		self.last_layer = new_layer
+		self.root.generate_next_layer(next_piece)
 
 	def get_last_layer(self):
 		return self.last_layer
 
-b = Board_Matrix()
-t = Tetris_Search_Tree()
-t.create(b, 0, -1, [4])
+b = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+	[1, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+	[1, 0, 0, 0, 0, 0, 1, 1, 0, 0], 
+	[1, 0, 0, 1, 0, 0, 0, 1, 1, 1], 
+	[0, 0, 0, 1, 1, 0, 1, 1, 1, 1]]
 
-for c in t.get_last_layer():
+t = Tetris_Search_Tree()
+t.create(format_bmat(b), 5, -1, [0])
+print("size",t.size())
+
+for c in t.get_root().get_children():
 	c.print_node()
+	print(c.get_rank())
+
+# maxc, ind = t.get_root().get_max_child()
+# print("rank", maxc)
+# t.get_root().get_child(ind).print_node()
 
 # c = t.get_last_layer()
 # dad = c[len(c)-1]

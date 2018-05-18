@@ -1,4 +1,10 @@
 #Regular Combos
+
+# tspins
+# 0 -- single
+# 1 -- double
+# 2 -- triple
+
 def next_points(combo, lines, tetris, tspin, perf, b2b):
     sent_lines = 0
     if combo < 0:
@@ -24,11 +30,11 @@ def next_points(combo, lines, tetris, tspin, perf, b2b):
     x = 2
     if b2b:
         x = 3
-    if tspin == 'single':
-        sent_lines += 1*x
-    elif tspin == 'double':
+    if tspin == 0:
+        sent_lines += x
+    elif tspin == 1:
         sent_lines += 2*x
-    elif tspin == 'triple':
+    elif tspin == 2:
         sent_lines += 3*x
 
     if perf:
@@ -46,9 +52,6 @@ def perf_clear_detect(board):
 #T-Spin Points
 def tspin_detect(moves):
     last_index = len(moves)-1
-    if moves[last_index] == 0 or moves[last_index] == 1:
-        return True
-    else:
-        return False
+    return moves[last_index] == 0 or moves[last_index] == 1
 
-print(next_points(5, 0, False, "double", False, True))
+print(next_points(5, 0, False, 0, False, True))

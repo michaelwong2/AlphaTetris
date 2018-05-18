@@ -17,11 +17,11 @@ class Ranker:
     #bumpiness...minimize
     def heur_bumps(self, board):
         heights = self.column_heights(board)
-        print(len(heights))
+        # print(len(heights))
         bumpiness = 0
         for x in range(board.get_width()-1):
             bumpiness += abs(heights[x] - heights[x+1])
-        return bumpiness
+        return bumpiness / 200
 
     #number of holes...minimize
     def pos_holes(self, board):
@@ -44,7 +44,7 @@ class Ranker:
         for i in holes:
             depthSum += heights[i[0]] - i[1]
 
-        return depthSum
+        return depthSum / 210
 
     def neighbors(self, l, x, y):
 
@@ -70,12 +70,12 @@ class Ranker:
         for x in holes:
             clumpHoles += 1
             self.neighbors(holes, x[0], x[1])
-        return clumpHoles
+        return clumpHoles / 100
 
 
     def rank(self, board):
-        value = self.heur_hole_clump(board)
-        return float(value/100)
+        return 0.33*self.heur_hole_clump(board) + 0.33*self.heur_hole_depth(board) + 0.33*self.heur_bumps(board)
+
 
 # testing utilities
 # m = [

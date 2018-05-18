@@ -3,9 +3,13 @@
 
 from copy import deepcopy
 from api.block import Block, valid_rotations
-from api.utils import dequeue, encode_move, neg_inf
+from api.utils import dequeue, encode_move
 from api.bmat import Board_Matrix
 from queue import Queue
+from api.points import * 
+from Ranker import Ranker
+
+ranker = Ranker()
 
 def generate_successor_states(board, piece_type):
 	# number of unique rotations per piece
@@ -140,12 +144,16 @@ def generate_successor_states(board, piece_type):
 
 
 class Tree_node:
-	def __init__(self, board, current, held, q):
+	def __init__(self, board, current, held, q, lines_sent, combos_so_far, last_combo_id):
 
 		self.board = board
 		self.current = current
 		self.held = held
 		self.q = q
+
+		self.lines_sent = lines_sent
+		self.combos_so_far = combos_so_far
+		self.last_combo_id = last_combo_id
 
 		self.moves_to_child = []
 		self.children = []
@@ -180,6 +188,9 @@ class Tree_node:
 	def get_child(self, i):
 		return self.children[i]
 
+	def get_rank(self):
+		return 1 - ranker.rank(self.board)
+
 	def moves_to_child(self, i):
 		return self.moves_to_child[i]
 
@@ -194,6 +205,23 @@ class Tree_node:
 
 	def get_board(self):
 		return self.board
+
+	def generate_next_layer(self, next_piece):
+		if self.is_leaf():
+			self.enqueue(next_piece)
+			self.generate_children()
+		else:
+			for child in self.children:
+				child.generate_next_layer(next_piece)
+
+	def fill(self):
+		if self.is_leaf():
+			return
+
+		self.generate_children()
+		for child in self.children:
+			child.fill()
+
 
 	# prune every child node except for node i
 	def prune(self, exception):
@@ -216,17 +244,17 @@ class Tree_node:
 		if self.is_leaf():
 			# return ranking of leaf
 			# return ranker.rank(self.board)
-			return (1,0)
+			return (1.0,0)
 
 		mi = -1
-		ma = neg_inf()
+		ma = 0
 
 		for i in range(len(self.children)):
 			c = self.children[i]
 			max_val, ind = c.get_max_child()
 
 			if max_val > ma:
-				ma = cr
+				ma = max_val
 				mi = i
 
 		return (ma, mi)
@@ -248,7 +276,7 @@ class Tree_node:
 			# if self.held == -1:
 			if len(self.q) > 0:
 				new_q = [] if len(self.q) < 2 else deepcopy(self.q)[1:]
-				new_node = Tree_node(self.board.get_copy(), self.q[0], self.current, new_q)
+				new_node = Tree_node(self.board.get_copy(), self.q[0], self.current, new_q, self.lines_sent, self.combos_so_far, self.last_combo_id)
 				self.add_child([encode_move('hold')], new_node)
 
 				# return
@@ -269,11 +297,35 @@ class Tree_node:
 			new_piece.execute_moves(moveset, self.board)
 			new_piece.set(new_board)
 
+			new_lines = self.lines_sent
+			combo_id = -1
+			new_combos_so_far = self.combos_so_far + 1
+
+			lines_cleared = new_board.clear_lines()
+			if lines_cleared == 0:
+				new_combos_so_far = 0
+			else:
+				combo_id = 0 if tspin_detect(moveset) else 1 if perf_clear_detect(new_board) else -1
+				new_lines += next_points(self.combos_so_far - 1, 
+										 self.lines_sent, 
+										 lines_cleared == 4, 
+										 combo_id == 0, 
+										 combo_id == 1, 
+										 combo_id == self.last_combo_id)
+
+
+
 			#update lines cleared
 			lines_cleared = new_board.clear_lines()
 
 			new_q = [] if len(self.q) < 2 else deepcopy(self.q)[1:]
 
-			new_node = Tree_node(new_board, -1 if len(self.q) == 0 else self.q[0], self.current if is_held else self.held, new_q)
+			new_node = Tree_node(new_board, 
+								-1 if len(self.q) == 0 else self.q[0], 
+								self.current if is_held else self.held, 
+								new_q,
+								new_lines,
+								new_combos_so_far,
+								combo_id)
 
 			self.add_child(([encode_move('hold')] if is_held else []) + moveset, new_node)
