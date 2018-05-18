@@ -22,6 +22,9 @@ def generate_successor_states(board, piece_type):
 		temp_piece = Block(piece_type)
 		temp_piece.set_rotation(board, rotation)
 
+		# print(temp_piece.loc_mat)
+		# print(rotation)
+
 		# get the next offset after rotating
 		sx = temp_piece.get_offset()[0]
 
@@ -138,6 +141,7 @@ def generate_successor_states(board, piece_type):
 
 class Tree_node:
 	def __init__(self, board, current, held, q):
+
 		self.board = board
 		self.current = current
 		self.held = held
@@ -149,10 +153,21 @@ class Tree_node:
 	def is_leaf(self):
 		return self.current == -1
 
+	def is_penultimate(self):
+		return len(self.q) == 0
+
+	def size(self):
+		s = 1
+
+		for child in self.children:
+			s += child.size()
+
+		return s
+
 	def print_node(self):
 		print("Current: " + str(self.current))
 		print("Held: " + str(self.held))
-		print("q: " + str(len(self.q)))
+		print("q: " + str(self.q))
 		print(self.board)
 
 	def add_child(self, move, child):
@@ -171,8 +186,22 @@ class Tree_node:
 	def set_current(self, c):
 		self.current = c
 
+	def enqueue(self, p):
+		if self.current == -1:
+			self.set_current(p)
+		else:
+			self.q.append(p)
+
 	def get_board(self):
 		return self.board
+
+	# prune every child node except for node i
+	def prune(self, exception):
+		for i in range(exception):
+			self.children[i].deep_delete()
+
+		for i in range(exception + 1, len(self.children)):
+			self.children[i].deep_delete()
 
 	def deep_delete(self):
 
@@ -187,22 +216,26 @@ class Tree_node:
 		if self.is_leaf():
 			# return ranking of leaf
 			# return ranker.rank(self.board)
-			return 1
+			return (1,0)
 
 		mi = -1
 		ma = neg_inf()
 
 		for i in range(len(self.children)):
 			c = self.children[i]
-			cr = c.get_max_child()
+			max_val, ind = c.get_max_child()
 
-			if cr > ma:
+			if max_val > ma:
 				ma = cr
 				mi = i
 
-		return ma
+		return (ma, mi)
 
 	def generate_children(self):
+
+		if self.is_leaf():
+			return
+
 		# only recurse with the current piece if there is one but switch pieces always
 		children = generate_successor_states(self.board, self.current)
 		self.make_nodes(children, self.current, False)
@@ -212,17 +245,17 @@ class Tree_node:
 
 			# if there is no held piece and the queue is not empty
 			# create a branch with the current piece held and the next piece dequeued
-			if self.held == -1:
-				if len(self.q) == 0:
-					return
-				else:
-					new_q = [] if len(self.q) < 2 else deepcopy(self.q)[1:]
-					new_node = Tree_node(self.board.get_copy(), self.q[0], self.current, new_q)
-					self.add_child([encode_move('hold')], new_node)
+			# if self.held == -1:
+			if len(self.q) > 0:
+				new_q = [] if len(self.q) < 2 else deepcopy(self.q)[1:]
+				new_node = Tree_node(self.board.get_copy(), self.q[0], self.current, new_q)
+				self.add_child([encode_move('hold')], new_node)
+
+				# return
 
 			# switch those pieces
-			held_children += generate_successor_states(self.board, self.held)
-			self.make_nodes(held_children, self.held, False)
+			# held_children = generate_successor_states(self.board, self.held)
+			# self.make_nodes(held_children, self.held, False)
 
 	def make_nodes(self, children, piece_type, is_held):
 
