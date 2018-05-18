@@ -190,7 +190,7 @@ class Tree_node:
 	def get_rank(self):
 		return 1 - self.ranker.rank(self.board)
 
-	def moves_to_child(self, i):
+	def get_moves_to_child(self, i):
 		return self.moves_to_child[i]
 
 	def set_current(self, c):
@@ -209,9 +209,14 @@ class Tree_node:
 		if self.is_leaf():
 			self.enqueue(next_piece)
 			self.generate_children()
-		else:
-			for child in self.children:
-				child.generate_next_layer(next_piece)
+			self.generate_held_children()
+			return
+		elif len(self.q) == 0:
+			self.enqueue(next_piece)
+			self.generate_held_children()
+
+		for child in self.children:
+			child.generate_next_layer(next_piece)
 
 	def fill(self):
 		if self.is_leaf():
@@ -232,11 +237,14 @@ class Tree_node:
 
 	def deep_delete(self):
 
-		del move_to_child
+		del self.moves_to_child
 
 		for child in self.children:
 			child.deep_delete()
 			del child
+
+	def delete_board(self):
+		del self.board
 
 	def get_max_child(self):
 
@@ -264,7 +272,9 @@ class Tree_node:
 
 		# only recurse with the current piece if there is one but switch pieces always
 		children = generate_successor_states(self.board, self.current)
-		self.make_nodes(children, self.current, False)
+		self.make_nodes(children, self.current, self.held, self.q, False)
+
+	def generate_held_children(self):
 
 		# if the held piece is not the current piece, switch
 		if self.held != self.current:
@@ -272,10 +282,21 @@ class Tree_node:
 			# if there is no held piece and the queue is not empty
 			# create a branch with the current piece held and the next piece dequeued
 			# if self.held == -1:
-			if len(self.q) > 0:
-				new_q = [] if len(self.q) < 2 else deepcopy(self.q)[1:]
-				new_node = Tree_node(self.board.get_copy(), self.q[0], self.current, new_q, self.lines_sent, self.combos_so_far, self.last_combo_id, self.ranker)
-				self.add_child([encode_move('hold')], new_node)
+			held_piece = self.held
+			new_q = self.q
+
+			if held_piece == -1:
+				if len(self.q) > 0:
+					new_q = [] if len(self.q) < 2 else deepcopy(self.q)[1:]
+					held_piece = self.q[0]
+				else:
+					return
+			
+			held_children = generate_successor_states(self.board, self.held)
+			self.make_nodes(held_children, held_piece, self.current, new_q, True)
+
+			# new_node = Tree_node(self.board.get_copy(), self.q[0], self.current, new_q, self.lines_sent, self.combos_so_far, self.last_combo_id, self.ranker)
+			# self.add_child([encode_move('hold')], new_node)
 
 				# return
 
@@ -283,7 +304,7 @@ class Tree_node:
 			# held_children = generate_successor_states(self.board, self.held)
 			# self.make_nodes(held_children, self.held, False)
 
-	def make_nodes(self, children, piece_type, is_held):
+	def make_nodes(self, children, piece_type, held_piece, q, is_held):
 
 		for child in children:
 
@@ -316,11 +337,11 @@ class Tree_node:
 			#update lines cleared
 			lines_cleared = new_board.clear_lines()
 
-			new_q = [] if len(self.q) < 2 else deepcopy(self.q)[1:]
+			new_q = [] if len(q) < 2 else deepcopy(q)[1:]
 
 			new_node = Tree_node(new_board, 
-								-1 if len(self.q) == 0 else self.q[0], 
-								self.current if is_held else self.held, 
+								-1 if len(q) == 0 else q[0], 
+								held_piece, 
 								new_q,
 								new_lines,
 								new_combos_so_far,
