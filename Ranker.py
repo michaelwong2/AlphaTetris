@@ -21,7 +21,7 @@ class Ranker:
         bumpiness = 0
         for x in range(board.get_width()-1):
             bumpiness += abs(heights[x] - heights[x+1])
-        return bumpiness / 200
+        return bumpiness
 
     #number of holes...minimize
     def pos_holes(self, board):
@@ -44,7 +44,7 @@ class Ranker:
         for i in holes:
             depthSum += heights[i[0]] - i[1]
 
-        return depthSum / 210
+        return depthSum
 
     def neighbors(self, l, x, y):
 
@@ -70,35 +70,58 @@ class Ranker:
         for x in holes:
             clumpHoles += 1
             self.neighbors(holes, x[0], x[1])
-        return clumpHoles / 100
+        return clumpHoles
 
+    def heur_avg_height(self, board):
+        heights = self.column_heights(board)
+        min = 20
+        total = 0
+        for x in heights:
+            if x < min:
+                min = x
+            total += x
+        return 16 - ((total - min) / 9)
 
-    def rank(self, board):
-        return 0.33*self.heur_hole_clump(board) + 0.33*self.heur_hole_depth(board) + 0.33*self.heur_bumps(board)
+    def tetris_rank(self, board):
+        return 0.8*len(self.pos_holes(board))/180 + 0.2*self.heur_avg_height(board)/20
 
+    def norm_rank(self, board):
+        return 0.25*self.heur_hole_clump(board)/100 + 0.25*self.heur_hole_depth(board)/2100 + 0.25*self.heur_bumps(board)/180 + 0.25*self.heur_avg_height(board)/20
 
+    def combo_rank(self, board):
+        return 0.2*len(self.pos_holes(board))/180 + 0.2*self.heur_avg_height(board)/20 + 0.2*self.heur_bumps(board)/180 + 0.4*self.heur_hole_depth(board)/2100
+
+    def update_strat(board, lines):
+        strats = [norm_rank(board), tetris_rank(board), combo_rank(board)]
+        minimize = 100
+        for x in strats:
+            if x < minimize:
+                minimize = x
+        return lines - minimize
 # testing utilities
-# m = [
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-# [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-# [1, 0, 0, 1, 1, 1, 1, 0, 1, 1],
-# [1, 1, 0, 0, 1, 1, 1, 1, 1, 1],
-# [1, 1, 1, 0, 0, 0, 1, 1, 1, 1],
-# [1, 1, 1, 1, 0, 0, 1, 1, 1, 1],
-# [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
+m = [
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+[0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+[0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+[0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+[0, 1, 1, 1, 1, 0, 1, 1, 1, 1],
+[0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+[0, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
 
-# r = Ranker()
-# print(r.rank_value(format_bmat(m)))
+r = Ranker()
+print(r.tetris_rank(format_bmat(m)))
+print(r.norm_rank(format_bmat(m)))
+print(r.combo_rank(format_bmat(m)))
