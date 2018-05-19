@@ -8,6 +8,8 @@ from api.bcontroller import Board_Controller
 from api.utils import dequeue, decode_move, encode_move, Piece_Generator
 from api.block import block_color
 from api.block import Block
+from copy import deepcopy
+from tree_search import Tetris_Search_Tree
 
 PIECE_W = 20
 PIECE_H = 20
@@ -32,7 +34,7 @@ ACTIONS = {
 }
 
 class Tetris:
-	def __init__(self, width=None, height=None, policy=None):
+	def __init__(self, width=None, height=None, ai=None):
 		if height == None and width == None:
 			board = Board_Controller()
 		else:
@@ -45,17 +47,22 @@ class Tetris:
 		pygame.init()
 		self.screen = pygame.display.set_mode((TOTAL_PIECE_WIDTH * self.width * 3, TOTAL_PIECE_HEIGHT * self.height))
 
+		self.use_ai = ai != None
+		self.ai = ai
+
 		self.pg = Piece_Generator()
+		s = []
 		for i in range(6):
-			board.enqueue(self.pg.get_next())
+			d = self.pg.get_next()
+			s.append(d)
+			board.enqueue(d)
+		
+		if self.use_ai:
+			self.ai.create(board.get_board_matrix(), deepcopy(s))
 
 		board.spawn_next()
 
 		self.board = board
-
-		self.use_ai = policy != None
-		if self.use_ai:
-			self.policy = policy
 
 		self.game_loop()
 
@@ -71,6 +78,26 @@ class Tetris:
 
 		return moves
 
+	def reset_board(self):
+		self.board.set_current()
+		self.board.clear_lines()
+
+		if self.board.check_KO():
+			return False
+
+		self.get_next_piece()
+
+		self.board.spawn_next()
+
+		return True
+
+	def get_next_piece(self):
+		next_piece = self.pg.get_next()
+		self.board.enqueue(next_piece)
+
+		if self.use_ai:
+			self.ai.enqueue(next_piece)
+
 	def game_loop(self):
 
 		board = self.board
@@ -82,7 +109,10 @@ class Tetris:
 
 		tick_counter = 0
 
-		get_moves = self.handle_key_event if not self.use_ai else self.policy
+		get_moves = self.handle_key_event if not self.use_ai else self.ai.next_moves
+
+		if self.use_ai:
+			moves = get_moves()
 
 		while True:
 
@@ -91,31 +121,33 @@ class Tetris:
 			tick_counter += 1
 
 			# get the next move(s)
-			moves += get_moves()
+			if not self.use_ai:
+				moves += get_moves()
 
 			# execute move from move_queue
 			if len(moves) > 0:
 				next_move = dequeue(moves)
-				# print('Next move: ' + decode_move(next_move))
 				board.execute_move(next_move)
 
 				if next_move == encode_move('hold'):
-					board.enqueue(self.pg.get_next())
 
-			if board.cannot_move_down():
-				# reset
-				board.set_current()
-				board.clear_lines()
+					self.get_next_piece()
 
-				if board.check_KO():
-					break
-
-				board.enqueue(self.pg.get_next())
-				board.spawn_next()
+				elif next_move == encode_move('drop'):
+					if not self.reset_board():
+						break 
+					else:
+						moves += get_moves()
 
 			if tick_counter == TICK_DELAY:
 				tick_counter = 0
-				board.move_current_down()
+
+				if not board.move_current_down():
+					# reset
+					if not self.reset_board():
+						break 
+					else:
+						moves += get_moves()
 
 			self.render()
 

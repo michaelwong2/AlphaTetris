@@ -83,7 +83,7 @@ class Ranker:
         return 16 - ((total - min) / 9)
 
     def tetris_rank(self, board):
-        return 0.8*len(self.pos_holes(board))/180 + 0.2*self.heur_avg_height(board)/20
+        return 0.6*len(self.pos_holes(board))/180 + 0.2*self.heur_avg_height(board)/20 + 0.2*self.heur_bumps(board)/180
 
     def norm_rank(self, board):
         return 0.25*self.heur_hole_clump(board)/100 + 0.25*self.heur_hole_depth(board)/2100 + 0.25*self.heur_bumps(board)/180 + 0.25*self.heur_avg_height(board)/20
@@ -91,37 +91,35 @@ class Ranker:
     def combo_rank(self, board):
         return 0.2*len(self.pos_holes(board))/180 + 0.2*self.heur_avg_height(board)/20 + 0.2*self.heur_bumps(board)/180 + 0.4*self.heur_hole_depth(board)/2100
 
-    def update_strat(board, lines):
-        strats = [norm_rank(board), tetris_rank(board), combo_rank(board)]
-        minimize = 100
-        for x in strats:
-            if x < minimize:
-                minimize = x
-        return lines - minimize
-# testing utilities
-m = [
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-[0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-[0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-[0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-[0, 1, 1, 1, 1, 0, 1, 1, 1, 1],
-[0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-[0, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
+    def update_strat(self, board, lines):
+        strats = min(self.norm_rank(board), self.tetris_rank(board), self.combo_rank(board))
+        return 0.4*strats + 0.6*((100.0 - lines)/100.0)
 
-r = Ranker()
-print(r.tetris_rank(format_bmat(m)))
-print(r.norm_rank(format_bmat(m)))
-print(r.combo_rank(format_bmat(m)))
+# testing utilities
+# m = [
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+# [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+# [0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+# [0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+# [0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+# [0, 1, 1, 1, 1, 0, 1, 1, 1, 1],
+# [0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+# [0, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
+
+# r = Ranker()
+# print(r.tetris_rank(format_bmat(m)))
+# print(r.norm_rank(format_bmat(m)))
+# print(r.combo_rank(format_bmat(m)))
+# print(r.update_strat(format_bmat(m)), m)

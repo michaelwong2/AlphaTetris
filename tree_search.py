@@ -7,9 +7,9 @@ from test_utils import format_bmat
 
 from api.utils import dequeue
 
-
 class Tetris_Search_Tree:
-	def __init__(self):
+	def __init__(self, depth=1):
+		self.depth = depth
 		self.ranker = Ranker()
 		self.buffer = []
 
@@ -20,73 +20,97 @@ class Tetris_Search_Tree:
 		return self.root.size()
 
 	def next_moves(self):
+
+		if self.root.is_leaf():
+			return -1
+
 		max_rank, index = self.root.get_max_child()
 		moves_toward_max = self.root.get_moves_to_child(index)
 
 		new_root = self.root.get_child(index)
 
-		new_root.print_node()
-
 		self.root.prune(index)
 		self.root = new_root
 
+		if len(self.buffer) > 1:
+			self.root.generate_next_layer(dequeue(self.buffer))
+
+		# print(moves_toward_max)
+
 		return moves_toward_max
 
-	def create(self, board, current, held, next_queue):
+	def create(self, board, starting_pieces):
 
-		self.buffer = next_queue
+		# print(starting_pieces)
 
-		self.root = Tree_node(board, current, held, [dequeue(self.buffer)], 0, 0, -1, self.ranker)
+		self.buffer = starting_pieces[1:]
+
+		starting = []
+
+		for i in range(self.depth):
+			starting.append(dequeue(self.buffer))
+
+		self.create_from_position(board, starting_pieces[0], -1, starting)
+
+	def create_from_position(self, board, current, held, next_queue):
+		self.root = Tree_node(board, current, held, next_queue, 0, 0, -1, self.ranker)
 		self.root.fill()
 
-	def update(self, next_piece):
-		self.buffer.append(next_piece)
-		self.root.generate_next_layer(dequeue(self.buffer))
+	def enqueue(self, next_piece):
 
-	def get_last_layer(self):
-		return self.last_layer
+		if len(self.buffer) == 0:
+			self.root.generate_next_layer(next_piece)
+		else:
+			self.buffer.append(next_piece)
+		
 
-b = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-	[1, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-	[1, 0, 0, 0, 0, 0, 1, 1, 0, 0], 
-	[1, 0, 0, 1, 0, 0, 0, 1, 1, 1], 
-	[0, 0, 0, 1, 1, 0, 1, 1, 1, 1]]
+# b = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+# 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+# 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+# 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+# 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+# 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+# 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+# 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+# 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+# 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+# 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+# 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+# 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+# 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+# 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+# 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+# 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+# 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+# 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+# 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
-t = Tetris_Search_Tree()
-t.create(format_bmat(b), 5, -1, [0])
-print("size",t.size())
+# t = Tetris_Search_Tree()
+# t.create(format_bmat(b), [0, 1, 3, 1, 5])
+# print("size",t.size())
 
-print("**************")
+# print("**************")
 
-maxc, ind = t.get_root().get_max_child()
-print("rank", maxc)
-print("moves", t.next_moves())
+# maxc, ind = t.get_root().get_max_child()
+# print("rank", maxc)
+# print("moves", t.next_moves())
 
-print("**************")
+# maxc, ind = t.get_root().get_max_child()
+# print("rank", maxc)
+# print("moves", t.next_moves())
 
-t.update(2)
+# maxc, ind = t.get_root().get_max_child()
+# print("rank", maxc)
+# print("moves", t.next_moves())
 
 # for c in t.get_root().get_children():
 # 	c.print_node()
 # 	print(c.get_rank())
 
-maxc, ind = t.get_root().get_max_child()
-print("rank", maxc)
-print("moves", t.next_moves())
+
+
+# maxc, ind = t.get_root().get_max_child()
+# print("rank", maxc)
+# print("moves", t.next_moves())
 
 
