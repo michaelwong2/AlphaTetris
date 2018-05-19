@@ -6,7 +6,7 @@ from api.block import Block, valid_rotations
 from api.utils import dequeue, encode_move
 from api.bmat import Board_Matrix
 from queue import Queue
-from api.points import * 
+from api.points import *
 from Ranker import Ranker
 
 
@@ -222,7 +222,7 @@ class Tree_node:
 		for child in self.children:
 			child.generate_next_layer(next_piece)
 
-	# generate all children in the tree 
+	# generate all children in the tree
 	def fill(self):
 		if self.is_leaf():
 			return
@@ -288,7 +288,7 @@ class Tree_node:
 			# if there is no held piece and the queue is not empty
 			# create a branch with the current piece held and the next piece dequeued
 			# if self.held == -1:
-			new_current = self.held 
+			new_current = self.held
 			new_q = self.q # [1]
 						   # c: 3
 						   # h: -1
@@ -299,7 +299,7 @@ class Tree_node:
 					new_current = self.q[0]
 				else:
 					return
-			
+
 			held_children = generate_successor_states(self.board, new_current)
 			self.make_nodes(held_children, new_current, self.current, new_q, True)
 
@@ -332,20 +332,26 @@ class Tree_node:
 			if lines_cleared == 0:
 				new_combos_so_far = 0
 			else:
-				combo_id = 0 if tspin_detect(moveset) else 1 if perf_clear_detect(new_board) else -1
-				new_lines += next_points(self.combos_so_far - 1, 
-										 lines_cleared, 
-										 lines_cleared == 4, 
-										 combo_id == 0, 
-										 combo_id == 1, 
+				is_tspin = tspin_detect(moveset)
+				is_perf_clear = perf_clear_detect(new_board)
+				combo_id = 1 if is_tspin else 0 if is_perf_clear else -1
+
+				if is_tspin and is_perf_clear:
+					combo_id = 2
+
+				new_lines += next_points(self.combos_so_far - 1,
+										 lines_cleared if lines_cleared != 4 else 0,
+										 lines_cleared == 4,
+										 is_tspin,
+										 is_perf_clear,
 										 combo_id == self.last_combo_id)
 
 
 			nq = [] if len(q) < 2 else deepcopy(q[1:])
 
-			new_node = Tree_node(new_board, 
-								-1 if len(q) == 0 else q[0], 
-								held_piece, 
+			new_node = Tree_node(new_board,
+								-1 if len(q) == 0 else q[0],
+								held_piece,
 								nq,
 								new_lines,
 								new_combos_so_far,
