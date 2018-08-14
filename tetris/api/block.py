@@ -1,12 +1,12 @@
-# Block class
+# Block class for a Tetris Tetrimino
 
 from random import randint
 import math
 
-#The t ATTRIBUTE of each block is initialized to INDEX one of these
+# The t ATTRIBUTE of each block is initialized to INDEX one of these
 block_types = ['I', 'J', 'L', 'O', 'S', 'T', 'Z']
 
-#The loc_mat ATTRIBUTE of each block is initialized to be one of these
+# The loc_mat ATTRIBUTE of each block is initialized to be one of these
 block_mats = [
 
 	[[1],
@@ -38,7 +38,7 @@ block_mats = [
 	 [0,1]]
 ]
 
-#order for clockwise rotations
+# order for clockwise rotations
 crot_translations = [
 	[(-1,1),(2,-1),(-2,2),(1,-2)],
 
@@ -55,7 +55,7 @@ crot_translations = [
 	[(0,0),(1,0),(-1,1),(0,-1)]
 ]
 
-#order for counter-clockwise rotations
+# order for counter-clockwise rotations
 ccrot_translations = [
 	[(-2,1),(2,-2),(-1,2),(1,-1)],
 
@@ -72,10 +72,10 @@ ccrot_translations = [
 	[(-1,0),(1,-1),(0,1),(0,0)]
 ]
 
-#Number of unique rotations for each block type
+# Number of unique rotations for each block type
 vrots = [2,4,4,1,2,4,2]
 
-#colors matching the block types
+# Colors matching the block types
 colors = [
 	(31,185,253),
 	(24,73,196),
@@ -86,8 +86,8 @@ colors = [
 	(248,58,93)
 ]
 
-#@pre: block type
-#@post: block color
+# @pre: block type
+# @post: block color
 def block_color(t):
 	if t <= -1:
 		return
@@ -114,7 +114,7 @@ class Block:
 
 		self.set_offset(self.get_spawn())
 
-	#@post: set a piece on the board. Piece's location defined by its offset
+	# @post: place a piece on the board. Piece's location defined by its offset and rotation
 	def set(self, board):
 		try:
 			for x in range(self.inner_width):
@@ -122,15 +122,15 @@ class Block:
 					if self.loc_mat[x][y] == 1:
 						board.set(self.off_x + x, self.off_y + y, self.t)
 		except:
-			print("error ...")
+			print("Error setting block")
 
-			for x in range(self.inner_width):
-				for y in range(self.inner_height):
-					if self.loc_mat[x][y] == 1:
-						print("accessing " + str(self.off_x + x) + ", " + str(self.off_y + y))
-						board.set(self.off_x + x, self.off_y + y, self.t)
+			# for x in range(self.inner_width):
+			# 	for y in range(self.inner_height):
+			# 		if self.loc_mat[x][y] == 1:
+			# 			print("accessing " + str(self.off_x + x) + ", " + str(self.off_y + y))
+			# 			board.set(self.off_x + x, self.off_y + y, self.t)
 
-	#@post: perform a rotation (can be more than 1 clockwise step)
+	# @post: perform a rotation (can be more than 1 clockwise step)
 	def set_rotation(self, board, rotation):
 
 		if self.rot == 3 and rotation == 0:
@@ -152,29 +152,32 @@ class Block:
 	def get_ccrot_trans(self,rotation):
 		return self.ccrot_trans[rotation]
 
-	#@post: get x-coordinate of the piece's spawn location/offset
+	# @post: get x-coordinate of the piece's spawn location/offset
 	def get_spawn(self, width=10):
 		return math.floor(width / 2) - math.ceil(self.inner_width/2)
 
+	# the type of piece
 	def get_type(self):
 		return self.t
 
+	# the width of the piece in its current rotation
 	def get_width(self):
 		return len(self.loc_mat)
 
+	# the height of the piece in its current rotation
 	def get_height(self):
 		return len(self.loc_mat[0])
 
-	#@post: get current location of the piece
+	# @post: get current location of the piece
 	def get_offset(self):
 		return (self.off_x, self.off_y)
 
-	#@post: set current location of the piece
+	# @post: set current location of the piece
 	def set_offset(self, x, y=0):
 		self.off_x = x
 		self.off_y = y
 
-	#@post: given (x,y), return True if the coordinates intersect with part of the piece
+	# @post: given (x,y), return True if the coordinates intersect with part of the piece
 	def intersects(self, x, y):
 		if x >= self.off_x and x < self.off_x + self.inner_width and y >= self.off_y and y < self.off_y + self.inner_height:
 			dx = x - self.off_x
@@ -207,7 +210,7 @@ class Block:
 		self.off_x = nx
 		self.off_y = ny
 
-	#@post: rotate the piece 1 step
+	# @post: rotate the piece 1 step
 	def rotate(self, board, clockwise):
 		if clockwise:
 			rot = self.rot + 1 if self.rot < 3 else 0
@@ -227,15 +230,6 @@ class Block:
 		new_off_x = self.off_x + rot_trans[0]
 		new_off_y = self.off_y + rot_trans[1]
 
-		# if self.off_x == 0 and self.off_y == 14:
-		# 	print("New off x",new_off_x)
-		# 	print("New off y",new_off_y)
-
-		#if new_off_x < 0:
-		#	new_off_x = 0
-		#elif new_off_x + new_width >= board_w:
-		#	new_off_x = board_w - new_width
-
 		#handle Wall Kick
 		#move offset around if needed
 		wall_kick = self.rot_collides(board, new_mat, new_width, new_height, new_off_x, new_off_y)
@@ -246,9 +240,6 @@ class Block:
 		elif wall_kick == -1:
 			new_off_x -= 1
 			new_off_y += 1
-
-		#if new_off_x + new_width >= board_w:
-		#	new_off_x = board_w - new_width
 
 		if self.rot_collides(board,new_mat,new_width,new_height,new_off_x,new_off_y) != 0:
 			return False
@@ -305,7 +296,7 @@ class Block:
 
 		return d
 
-	#@post: return True if there's something at distance (dx,dy) from the piece
+	# @post: return True if there's something at distance (dx,dy) from the piece
 	def collides(self, b, dx=0, dy=0):
 		for ix in range(self.inner_width):
 			for iy in range(self.inner_height):

@@ -1,8 +1,9 @@
 # Board class
 
 from .block import Block
-from .utils import dequeue, decode_move
+from .utils import decode_move
 from .bmat import Board_Matrix
+from collections import deque
 
 class Board_Controller:
 	def __init__(self, width=10, height=21):
@@ -13,7 +14,7 @@ class Board_Controller:
 
 		self.current_piece = None
 		self.held_piece = None
-		self.next_queue = []
+		self.next_queue = deque()
 
 		self.can_hold = True
 
@@ -50,7 +51,7 @@ class Board_Controller:
 		self.held_piece = self.current_piece.get_type()
 
 		if h == None:
-			self.current_piece = Block(dequeue(self.next_queue))
+			self.current_piece = Block(self.next_queue.popleft())
 		else:
 			self.current_piece = Block(h)
 
@@ -58,7 +59,7 @@ class Board_Controller:
 
 	# dequeue the next piece and place it on the board
 	def spawn_next(self):
-		self.current_piece = Block(dequeue(self.next_queue))
+		self.current_piece = Block(self.next_queue.popleft())
 		self.can_hold = True
 
 	# check if there is a solidified block in the top row

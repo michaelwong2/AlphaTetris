@@ -5,11 +5,12 @@ import sys
 from random import randint
 
 from api.bcontroller import Board_Controller
-from api.utils import dequeue, decode_move, encode_move, Piece_Generator
+from api.utils import decode_move, encode_move, Piece_Generator
 from api.block import block_color
 from api.block import Block
 from copy import deepcopy
 from tree_search import Tetris_Search_Tree
+from collections import deque
 
 PIECE_W = 20
 PIECE_H = 20
@@ -34,7 +35,7 @@ ACTIONS = {
 }
 
 class Tetris:
-	def __init__(self, width=None, height=None, ai=None):
+	def __init__(self, width=None, height=None):
 		if height == None and width == None:
 			board = Board_Controller()
 		else:
@@ -47,9 +48,6 @@ class Tetris:
 		pygame.init()
 		self.screen = pygame.display.set_mode((TOTAL_PIECE_WIDTH * self.width * 3, TOTAL_PIECE_HEIGHT * self.height))
 
-		self.use_ai = ai != None
-		self.ai = ai
-
 		self.pg = Piece_Generator()
 		s = []
 		for i in range(6):
@@ -57,9 +55,6 @@ class Tetris:
 			s.append(d)
 			board.enqueue(d)
 		
-		if self.use_ai:
-			self.ai.create(board.get_board_matrix(), deepcopy(s))
-
 		board.spawn_next()
 
 		self.board = board
@@ -95,24 +90,18 @@ class Tetris:
 		next_piece = self.pg.get_next()
 		self.board.enqueue(next_piece)
 
-		if self.use_ai:
-			self.ai.enqueue(next_piece)
-
 	def game_loop(self):
 
 		board = self.board
 		grav_rate = 200
 
-		moves = []
+		moves = deque()
 
 		clock = pygame.time.Clock()
 
 		tick_counter = 0
 
-		get_moves = self.handle_key_event if not self.use_ai else self.ai.next_moves
-
-		if self.use_ai:
-			moves = get_moves()
+		get_moves = self.handle_key_event
 
 		while True:
 
@@ -121,12 +110,11 @@ class Tetris:
 			tick_counter += 1
 
 			# get the next move(s)
-			if not self.use_ai:
-				moves += get_moves()
+			moves.extend(get_moves())
 
 			# execute move from move_queue
 			if len(moves) > 0:
-				next_move = dequeue(moves)
+				next_move = moves.popleft()
 				board.execute_move(next_move)
 
 				if next_move == encode_move('hold'):
@@ -137,7 +125,7 @@ class Tetris:
 					if not self.reset_board():
 						break 
 					else:
-						moves += get_moves()
+						moves.extend(get_moves())
 
 			if tick_counter == TICK_DELAY:
 				tick_counter = 0
@@ -147,7 +135,7 @@ class Tetris:
 					if not self.reset_board():
 						break 
 					else:
-						moves += get_moves()
+						moves.extend(get_moves())
 
 			self.render()
 
@@ -225,7 +213,7 @@ class Tetris:
 					)
 				)
 
-		q = self.board.next_queue
+		q = list(self.board.next_queue)
 
 		ny = 2
 		for next_piece in q[:5]:
@@ -246,4 +234,4 @@ class Tetris:
 						)
 			ny += 4
 
-t = Tetris()
+Tetris()
