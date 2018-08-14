@@ -3,15 +3,24 @@
 from api.bmat import Board_Matrix
 from tree_components import Tree_node
 from Ranker import Ranker
-from test_utils import format_bmat
-
-from api.utils import dequeue
+from collections import deque
 
 class Tetris_Search_Tree:
-	def __init__(self, depth=1):
-		self.depth = depth
-		self.ranker = Ranker()
-		self.buffer = []
+	# create the tree and give it a list of starting pieces and the depth parameter
+	def __init__(self, board, initial_pieces, k=1):	
+
+		starting_set = initial_pieces[:k]
+		self.buffer = deque(initial_pieces[k:])
+
+		# set the ranker
+		Tree_node.set_ranker(Ranker())
+		
+		# create default root
+		self.root = Tree_node(board=board)
+
+		# generate a new layer for each piece in the starting set
+		for i in range(k):
+			self.root.generate_children_with_piece(starting_set[i])
 
 	def get_root(self):
 		return self.root
@@ -19,48 +28,23 @@ class Tetris_Search_Tree:
 	def size(self):
 		return self.root.size()
 
+	# get the next moves, generate another layer and 
 	def next_moves(self):
 
-		if self.root.is_leaf():
-			return -1
+		if(len(self.buffer) == 0):
+			return []
 
-		max_rank, index = self.root.get_max_child()
-		moves_toward_max = self.root.get_moves_to_child(index)
+		moves, next_child = self.root.get_step_towards_largest_child(self.buffer.popleft())
 
-		new_root = self.root.get_child(index)
+		self.root = next_child
 
-		self.root.prune(index)
-		self.root = new_root
+		return moves
 
-		if len(self.buffer) > 1:
-			self.root.generate_next_layer(dequeue(self.buffer))
-
-		# print(moves_toward_max)
-
-		return moves_toward_max
-
-	def create(self, board, starting_pieces):
-
-		# print(starting_pieces)
-
-		self.buffer = starting_pieces[1:]
-
-		starting = []
-
-		for i in range(self.depth):
-			starting.append(dequeue(self.buffer))
-
-		self.create_from_position(board, starting_pieces[0], -1, starting)
-
-	def create_from_position(self, board, current, held, next_queue):
-		self.root = Tree_node(board, current, held, next_queue, 0, 0, -1, self.ranker)
-		self.root.fill()
-
+	# add a single piece or a batch
 	def enqueue(self, next_piece):
-
-		if len(self.buffer) == 0:
-			self.root.generate_next_layer(next_piece)
-		else:
+		if type(next_piece) is list:
+			self.buffer.extend(next_piece)
+		elif type(next_piece) is int:
 			self.buffer.append(next_piece)
 		
 
@@ -85,9 +69,8 @@ class Tetris_Search_Tree:
 # 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
 # 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
-# t = Tetris_Search_Tree()
-# t.create(format_bmat(b), [0, 1, 3, 1, 5])
-# print("size",t.size())
+# t = Tetris_Search_Tree(Board_Matrix.from_matrix(b), [0, 1, 3, 1, 5])
+# print("size", t.size())
 
 # print("**************")
 
@@ -104,7 +87,12 @@ class Tetris_Search_Tree:
 # print("moves", t.next_moves())
 
 # for c in t.get_root().get_children():
-# 	c.print_node()
+# 	print(c)
+# 	print("dADd-----------")
+# 	for cc in c.get_children():
+# 		print(cc)
+
+# 	print("---------------")
 # 	print(c.get_rank())
 
 

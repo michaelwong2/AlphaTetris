@@ -1,15 +1,7 @@
 # utils
 
 from random import shuffle
-
-# given a list l, return the first element in it and remove it from the list
-def dequeue(l):
-	if l == None or len(l) == 0:
-		return None
-	else: 
-		r = l[0]
-		del l[0]
-		return r
+from collections import deque
 
 move_int_map = {
 	'crot': 0,
@@ -39,15 +31,16 @@ def inf():
 def neg_inf():
 	return -inf
 
+# Bag algorithm
 class Piece_Generator:
 	def __init__(self):
-		self.bag = []
+		self.bag = deque()
 
 	def get_next(self):
 
 		if len(self.bag) == 0:
 			b = [i for i in range(7)]
 			shuffle(b)
-			self.bag = b
+			self.bag = deque(b)
 
-		return dequeue(self.bag)
+		return self.bag.popleft()

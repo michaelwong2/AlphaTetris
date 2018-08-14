@@ -12,6 +12,21 @@ class Board_Matrix:
 		#height of highest block on the board AKA build height
 		self.bheight = 0 if len(b) == 0 else self.calc_build_height()
 
+	@staticmethod
+	def from_matrix(matrix):
+		b = Board_Matrix()
+
+		for y in range(len(matrix)):
+			for x in range(len(matrix[0])):
+				v = matrix[y][x]
+
+				if v == 0:
+					v = None
+
+				b.set(x, y, v)
+
+		return b
+
 	#@post: return block at coordinate. -1 for grey block. 0-6 for blocks.
 	def lookup(self, x, y):
 		return self.mat[x][y]

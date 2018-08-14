@@ -1,21 +1,20 @@
-# Components of the search tree
-# Tree node class
-
 from copy import deepcopy
 from api.block import Block, valid_rotations
-from api.utils import dequeue, encode_move
+from api.utils import encode_move
 from api.bmat import Board_Matrix
 from queue import Queue
 from api.points import *
-from Ranker import Ranker
+from collections import deque
 
-
+# given a board and a piece, generate all possible board states 
+# resulting from placing that piece down in a valid way
 def generate_successor_states(board, piece_type):
 	# number of unique rotations per piece
 	r = valid_rotations(piece_type)
 
 	# store all possible positions in a queue
-	pos = Queue()
+	pos = deque()
+
 	# 3D memo for later ;)
 	memo = [[[0 for z in range(r)] for y in range(board.get_height())] for x in range(board.get_width())]
 
@@ -52,15 +51,15 @@ def generate_successor_states(board, piece_type):
 			moves = [encode_move('crot') for i in range(rotation)] + [encode_move('left') if x - sx < 0 else encode_move('right') for i in range(abs(x-sx))] + [encode_move('drop')]
 
 			# enqueue
-			pos.put((tx, ty, rotation, moves))
+			pos.append((tx, ty, rotation, moves))
 
 	# the final set to return
 	children = []
 
 	# while the queue still contains positions
-	while not pos.empty():
+	while len(pos) > 0:
 
-		child = pos.get()
+		child = pos.popleft()
 
 		# add to final bag
 		children.append(child)
@@ -129,7 +128,7 @@ def generate_successor_states(board, piece_type):
 			nmoves += [encode_move('down') for i in range(down)]
 
 			# enqueue
-			pos.put((nx, ny, nr, nmoves))
+			pos.append((nx, ny, nr, nmoves))
 
 			# mark this new space as visited, too
 			memo[nx][ny][nr] = 1
@@ -139,46 +138,47 @@ def generate_successor_states(board, piece_type):
 
 	return children
 
+ranker = None
 
+# Tree node takes a 
+# board
+# held piece
+# integer number of lines sent
+# integer number of comobos so far
+# integer id of last combo
+# can hold bool
 class Tree_node:
-	def __init__(self, board, current, held, q, lines_sent, combos_so_far, last_combo_id, ranker, cannot_hold=False):
+	def __init__(self, board, held=-1, lines_sent=0, combos_so_far=0, last_combo_id=-1, can_hold=True):
 
 		self.board = board
-		self.current = current
 		self.held = held
-		self.q = q
 
 		self.lines_sent = lines_sent
 		self.combos_so_far = combos_so_far
 		self.last_combo_id = last_combo_id
-		self.cannot_hold = cannot_hold
 
-		self.ranker = ranker
+		self.can_hold = can_hold
 
 		self.moves_to_child = []
 		self.children = []
 
-	def is_leaf(self):
-		return self.current == -1 or self.board.check_KO()
+		self.is_leaf = True
 
-	def is_penultimate(self):
-		return len(self.q) == 0
+	@staticmethod
+	def set_ranker(r):
+		global ranker
+		ranker = r
 
-	def size(self):
-		s = 1
+	def __str__(self):
+		return "\n".join(["leaf: " + ("yes" if self.is_leaf else "no"), str(self.board)])
 
-		for child in self.children:
-			s += child.size()
+	# ACCESSOR AND MUTATOR METHODS
 
-		return s
+	# change leaf status of node
+	def revoke_leaf(self):
+		self.is_leaf = False
 
-	def print_node(self):
-		print("Current: " + str(self.current))
-		print("Held: " + str(self.held))
-		print("q: " + str(self.q))
-		print("lines:", self.lines_sent)
-		print(self.board)
-
+	# manage children
 	def add_child(self, move, child):
 		self.moves_to_child.append(move)
 		self.children.append(child)
@@ -190,145 +190,113 @@ class Tree_node:
 		return self.children[i]
 
 	def get_rank(self):
-		return 1 - self.ranker.update_strat(self.board, self.lines_sent)
+		global ranker
+		return 1 - ranker.update_strat(self.board, self.lines_sent)
 
 	def get_moves_to_child(self, i):
 		return self.moves_to_child[i]
 
-	def set_current(self, c):
-		self.current = c
+	# RECURSIVE METHODS 
 
-	def enqueue(self, p):
-		if self.current == -1:
-			self.set_current(p)
-		else:
-			self.q.append(p)
+	# get the child which leads to the largest leaf in the tree
+	# return a tuple with the moves to that child and child itself
+	def get_step_towards_largest_child(self, piece):
+		_, ind = self.generate_children_with_piece(piece)
+		return (self.get_moves_to_child(ind), self.get_child(ind))
 
-	def get_board(self):
-		return self.board
+	# given the next piece, generate all possible children of this node if it is a leaf
+	# otherwise, recurse on children till we reach a leaf
+	# return type: tuple with maximum integer rank of child and index of child
+	def generate_children_with_piece(self, piece):
 
-	# use the next piece to fill in extra children
-	def generate_next_layer(self, next_piece):
-		if self.is_leaf():
-			self.enqueue(next_piece)
-			self.generate_children()
-			self.generate_held_children()
-			return
-		elif len(self.q) == 0:
-			pass
-			self.enqueue(next_piece)
-			self.generate_held_children()
+		maximum = float('-inf')
+		ind = -1
 
-		for child in self.children:
-			child.generate_next_layer(next_piece)
+		# if not the leaf, recurse
+		if not self.is_leaf:
 
-	# generate all children in the tree
-	def fill(self):
-		if self.is_leaf():
-			return
+			for i in range(len(self.children)):
+				child = self.children[i]
+				max_v, max_i = child.generate_children_with_piece(piece)
 
-		self.generate_children()
-		self.generate_held_children()
-		for child in self.children:
-			child.fill()
+				if max_v > maximum:
+					maximum = max_v
+					ind = i
 
+			return (maximum, ind)
 
-	# prune every child node except for node i
-	def prune(self, exception):
-		for i in range(exception):
-			self.children[i].deep_delete()
+		# otherwise we've hit the leaf
+		self.revoke_leaf()
 
-		for i in range(exception + 1, len(self.children)):
-			self.children[i].deep_delete()
+		# in all cases, we assume there is no current piece, but there may be a held piece
+		# so first generate all possible states with the current piece without holding 
 
-	def deep_delete(self):
+		children1 = generate_successor_states(self.board, piece)
+		maximum, ind = self.make_children(children1, piece, self.held, True, False) # the next can hold because we did not hold on these
 
-		del self.moves_to_child
+		# now we hold the piece, but only if we can hold in the first place
+		if self.can_hold:
 
-		for child in self.children:
-			child.deep_delete()
-			del child
+			# either there was a held piece already or not 
+			# if there was a held piece, swap and execute moves and set can_hold to true for the children
+			# otherwise generate one node with the current cleared, i.e. the new piece is held
 
-	def delete_board(self):
-		del self.board
+			# there is a piece
+			if self.held > -1:
 
-	def get_max_child(self):
+				children2 = generate_successor_states(self.board, self.held)
+				max2, ind2 = self.make_children(children2, self.held, piece, True, True)
 
-		if self.is_leaf():
-			# return ranking of leaf
-			return (self.get_rank(), 0)
+				if max2 > maximum:
+					maximum = max2
+					ind = ind2
 
-		mi = -1
-		ma = 0
+			# hold this piece
+			else:
+				held_node = Tree_node(
+					self.board,
+					piece,
+					self.lines_sent,
+					self.combos_so_far,
+					self.last_combo_id,
+					False # can't hold the next one
+				)
 
-		for i in range(len(self.children)):
-			c = self.children[i]
-			max_val, ind = c.get_max_child()
+				self.add_child([encode_move('hold')], held_node)
 
-			if max_val > ma:
-				ma = max_val
-				mi = i
+				ranking = held_node.get_rank()
+				if ranking > maximum:
+					maximum = ranking
+					ind = len(self.children) - 1
 
-		return (ma, mi)
+		return (maximum, ind)
 
-	def generate_children(self):
+	# given next possible board states and some other vars
+	# generate and assign children to current node
+	# return a tuple with the max child and its index
+	def make_children(self, children, piece, held, next_can_hold, put_hold):
 
-		if self.is_leaf():
-			return
+		maximum = float('-inf')
+		ind = -1
 
-		# only recurse with the current piece if there is one but switch pieces always
-		children = generate_successor_states(self.board, self.current)
-		self.make_nodes(children, self.current, self.held, self.q, False)
+		for i in range(len(children)):
+			# unpack that child
+			x, y, rot, moveset = children[i]
 
-	def generate_held_children(self):
-
-		# if the held piece is not the current piece, switch
-		if not self.cannot_hold and self.held != self.current:
-
-			# if there is no held piece and the queue is not empty
-			# create a branch with the current piece held and the next piece dequeued
-			# if self.held == -1:
-			new_current = self.held
-			new_q = self.q # [1]
-						   # c: 3
-						   # h: -1
-
-			if new_current == -1:
-				if len(self.q) > 0:
-					new_q = [] if len(self.q) < 2 else deepcopy(self.q[1:])
-					new_current = self.q[0]
-				else:
-					return
-
-			held_children = generate_successor_states(self.board, new_current)
-			self.make_nodes(held_children, new_current, self.current, new_q, True)
-
-			# new_node = Tree_node(self.board.get_copy(), self.q[0], self.current, new_q, self.lines_sent, self.combos_so_far, self.last_combo_id, self.ranker)
-			# self.add_child([encode_move('hold')], new_node)
-
-				# return
-
-			# switch those pieces
-			# held_children = generate_successor_states(self.board, self.held)
-			# self.make_nodes(held_children, self.held, False)
-
-	def make_nodes(self, children, piece_type, held_piece, q, is_held):
-
-		for child in children:
-
-			x, y, rot, moveset = child
-
+			# create new board and execute moves
 			new_board = self.board.get_copy()
 
-			new_piece = Block(piece_type)
+			new_piece = Block(piece)
 			new_piece.execute_moves(moveset, self.board)
 			new_piece.set(new_board)
 
+			# calculate points
 			new_lines = self.lines_sent
 			combo_id = -1
 			new_combos_so_far = self.combos_so_far + 1
 
 			lines_cleared = new_board.clear_lines()
+
 			if lines_cleared == 0:
 				new_combos_so_far = 0
 			else:
@@ -346,17 +314,40 @@ class Tree_node:
 										 is_perf_clear,
 										 combo_id == self.last_combo_id)
 
-
-			nq = [] if len(q) < 2 else deepcopy(q[1:])
-
+			# create the new node
 			new_node = Tree_node(new_board,
-								-1 if len(q) == 0 else q[0],
-								held_piece,
-								nq,
+								held,
 								new_lines,
 								new_combos_so_far,
 								combo_id,
-								self.ranker,
-								is_held)
+								next_can_hold)
 
-			self.add_child(([encode_move('hold')] if is_held else []) + moveset, new_node)
+			self.add_child(([encode_move('hold')] if put_hold else []) + moveset, new_node)
+
+			ranking = new_node.get_rank()
+			if ranking > maximum:
+				maximum = ranking
+				ind = i
+
+		return (maximum, ind)
+
+	def size(self):
+		t = 1
+
+		for child in self.children:
+			t += child.size()
+
+		return t
+
+
+
+
+
+		
+
+
+
+
+
+
+	

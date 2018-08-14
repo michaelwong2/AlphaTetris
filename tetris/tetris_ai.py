@@ -2,16 +2,14 @@
 
 import time
 from tree_search import Tetris_Search_Tree
-from api.utils import dequeue, decode_move, encode_move, Piece_Generator
+from api.utils import decode_move, encode_move, Piece_Generator
 from copy import deepcopy
 from api.bmat import Board_Matrix
 
 board = Board_Matrix()
 pg = Piece_Generator()
 
-t = Tetris_Search_Tree()
-t.create(board, [pg.get_next() for i in range(3)])
-
+t = Tetris_Search_Tree(board=board, initial_pieces=[pg.get_next() for _ in range(3)])
 moves = []
 
 for i in range(600):

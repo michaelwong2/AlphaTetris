@@ -1,5 +1,4 @@
 #Ranker
-from test_utils import format_bmat
 from random import randint
 
 class Ranker:
