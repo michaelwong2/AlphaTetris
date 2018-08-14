@@ -1,5 +1,10 @@
 # Board matrix
 
+from collections import deque
+from .block import Block, valid_rotations
+from .utils import encode_move
+from copy import deepcopy
+
 class Board_Matrix:
 	def __init__(self, w=10, h=20, b=[], g=0):
 		self.width = w
@@ -196,3 +201,135 @@ class Board_Matrix:
 			s += line + '\n'
 
 		return s
+
+	# given a piece, generate all possible board states 
+	# resulting from placing that piece down in a valid way on this board
+	def successor_states(self, piece_type):
+
+		# number of unique rotations per piece
+		r = valid_rotations(piece_type)
+
+		# store all possible positions in a queue
+		pos = deque()
+
+		# 3D memo for later ;)
+		memo = [[[0 for z in range(r)] for y in range(self.get_height())] for x in range(self.get_width())]
+
+		# for each unique rotation
+		for rotation in range(r):
+			# construct a temporary piece
+			temp_piece = Block(piece_type)
+			temp_piece.set_rotation(self, rotation)
+
+			# get the next offset after rotating
+			sx = temp_piece.get_offset()[0]
+
+			# for each horizontal position
+			for x in range(self.get_width() - temp_piece.get_width() + 1):
+
+				# shift the piece horizontally
+				temp_piece.set_offset(x, 0)
+				if temp_piece.collides(self):
+					continue
+
+				# drop
+				temp_piece.drop(self)
+
+				# get final position
+				tx, ty = temp_piece.get_offset()
+
+				# memoize
+				memo[tx][ty][rotation] = 1
+
+				#print(str(tx) + ", " + str(ty) + ", " + str(rotation))
+
+				# encode moves
+				moves = [encode_move('crot') for i in range(rotation)] + [encode_move('left') if x - sx < 0 else encode_move('right') for i in range(abs(x-sx))] + [encode_move('drop')]
+
+				# enqueue
+				pos.append((tx, ty, rotation, moves))
+
+		# the final set to return
+		children = []
+
+		# while the queue still contains positions
+		while len(pos) > 0:
+
+			child = pos.popleft()
+
+			# add to final bag
+			children.append(child)
+
+			x, y, rot, moves = child
+
+			# make a block and put it into the correct place
+			test_piece = Block(piece_type)
+			test_piece.execute_moves(moves, self)
+
+			o_off_x, o_off_y = test_piece.get_offset()
+
+			# generate partial movements from this position, i.e. left, right, and all rotations
+			# stored in tuples like so (dx, dy, nr)
+			next_positions = [(1, 0, rot), (-1, 0, rot)] + [(0,0,i) for i in range(r)]
+
+			# for each partial movement
+			for npos in next_positions:
+				# quick access variables
+				dx, dy, nr = npos
+
+				# rotate the piece for the new rotation, if possibe, else its invalid so skip
+				if not test_piece.set_rotation(self, nr):
+					continue
+
+				offset = test_piece.get_offset()
+
+				# translate the piece right or left or skip if invalid
+				if (dx > 0 and not test_piece.r_translate(self)) or (dx < 0 and not test_piece.l_translate(self)):
+					continue
+
+				# apply gravity
+				down = test_piece.drop(self)
+
+				# get updated locations
+				nx, ny = test_piece.get_offset()
+
+				# check that the move was not already encoded
+				if memo[nx][ny][nr] == 1:
+					test_piece.dirty_reset_position(o_off_x, o_off_y, rot)
+					continue
+
+				# now encode additional movements
+				# copy moves and convert drops to down movements because this is more meticulous
+
+				nmoves = deepcopy(moves)
+
+				# convert drops to down moves
+				l = len(moves) - 1
+				if moves[l] == encode_move('drop'):
+					nmoves = nmoves[:l] + [encode_move('down') for i in range(y)]
+
+				# generate additional horizontal movements
+				if dx != 0:
+					nmoves.append(encode_move('left') if dx == -1 else encode_move('right'))
+
+				# generate rotation movements
+				dr = nr - rot
+				#print("rotations:",dr)
+				if rot == 3 and nr == 0:
+					nmoves += [encode_move('crot')]
+				elif dr != 0:
+					nmoves += [encode_move('crot') if dr > 0 else encode_move('ccrot') for i in range(abs(dr))]
+
+				# generate additional down movements
+				nmoves += [encode_move('down') for i in range(down)]
+
+				# enqueue
+				pos.append((nx, ny, nr, nmoves))
+
+				# mark this new space as visited, too
+				memo[nx][ny][nr] = 1
+
+				# undo moves
+				test_piece.dirty_reset_position(o_off_x, o_off_y, rot)
+
+		return children

@@ -1,142 +1,6 @@
-from copy import deepcopy
-from api.block import Block, valid_rotations
+from api.block import Block
 from api.utils import encode_move
-from api.bmat import Board_Matrix
-from queue import Queue
 from api.points import *
-from collections import deque
-
-# given a board and a piece, generate all possible board states 
-# resulting from placing that piece down in a valid way
-def generate_successor_states(board, piece_type):
-	# number of unique rotations per piece
-	r = valid_rotations(piece_type)
-
-	# store all possible positions in a queue
-	pos = deque()
-
-	# 3D memo for later ;)
-	memo = [[[0 for z in range(r)] for y in range(board.get_height())] for x in range(board.get_width())]
-
-	# for each unique rotation
-	for rotation in range(r):
-		# construct a temporary piece
-		temp_piece = Block(piece_type)
-		temp_piece.set_rotation(board, rotation)
-
-
-		# get the next offset after rotating
-		sx = temp_piece.get_offset()[0]
-
-		# for each horizontal position
-		for x in range(board.get_width() - temp_piece.get_width() + 1):
-
-			# shift the piece horizontally
-			temp_piece.set_offset(x, 0)
-			if temp_piece.collides(board):
-				continue
-
-			# drop
-			temp_piece.drop(board)
-
-			# get final position
-			tx, ty = temp_piece.get_offset()
-
-			# memoize
-			memo[tx][ty][rotation] = 1
-
-			#print(str(tx) + ", " + str(ty) + ", " + str(rotation))
-
-			# encode moves
-			moves = [encode_move('crot') for i in range(rotation)] + [encode_move('left') if x - sx < 0 else encode_move('right') for i in range(abs(x-sx))] + [encode_move('drop')]
-
-			# enqueue
-			pos.append((tx, ty, rotation, moves))
-
-	# the final set to return
-	children = []
-
-	# while the queue still contains positions
-	while len(pos) > 0:
-
-		child = pos.popleft()
-
-		# add to final bag
-		children.append(child)
-
-		x, y, rot, moves = child
-
-		# make a block and put it into the correct place
-		test_piece = Block(piece_type)
-		test_piece.execute_moves(moves, board)
-
-		o_off_x, o_off_y = test_piece.get_offset()
-
-		# generate partial movements from this position, i.e. left, right, and all rotations
-		# stored in tuples like so (dx, dy, nr)
-		next_positions = [(1, 0, rot), (-1, 0, rot)] + [(0,0,i) for i in range(r)]
-
-		# for each partial movement
-		for npos in next_positions:
-			# quick access variables
-			dx, dy, nr = npos
-
-			# rotate the piece for the new rotation, if possibe, else its invalid so skip
-			if not test_piece.set_rotation(board, nr):
-				continue
-
-			offset = test_piece.get_offset()
-
-			# translate the piece right or left or skip if invalid
-			if (dx > 0 and not test_piece.r_translate(board)) or (dx < 0 and not test_piece.l_translate(board)):
-				continue
-
-			# apply gravity
-			down = test_piece.drop(board)
-
-			# get updated locations
-			nx, ny = test_piece.get_offset()
-
-			# check that the move was not already encoded
-			if memo[nx][ny][nr] == 1:
-				test_piece.dirty_reset_position(o_off_x, o_off_y, rot)
-				continue
-
-			# now encode additional movements
-			# copy moves and convert drops to down movements because this is more meticulous
-
-			nmoves = deepcopy(moves)
-
-			# convert drops to down moves
-			l = len(moves) - 1
-			if moves[l] == encode_move('drop'):
-				nmoves = nmoves[:l] + [encode_move('down') for i in range(y)]
-
-			# generate additional horizontal movements
-			if dx != 0:
-				nmoves.append(encode_move('left') if dx == -1 else encode_move('right'))
-
-			# generate rotation movements
-			dr = nr - rot
-			#print("rotations:",dr)
-			if rot == 3 and nr == 0:
-				nmoves += [encode_move('crot')]
-			elif dr != 0:
-				nmoves += [encode_move('crot') if dr > 0 else encode_move('ccrot') for i in range(abs(dr))]
-
-			# generate additional down movements
-			nmoves += [encode_move('down') for i in range(down)]
-
-			# enqueue
-			pos.append((nx, ny, nr, nmoves))
-
-			# mark this new space as visited, too
-			memo[nx][ny][nr] = 1
-
-			# undo moves
-			test_piece.dirty_reset_position(o_off_x, o_off_y, rot)
-
-	return children
 
 ranker = None
 
@@ -231,7 +95,7 @@ class Tree_node:
 		# in all cases, we assume there is no current piece, but there may be a held piece
 		# so first generate all possible states with the current piece without holding 
 
-		children1 = generate_successor_states(self.board, piece)
+		children1 = self.board.successor_states(piece)
 		maximum, ind = self.make_children(children1, piece, self.held, True, False) # the next can hold because we did not hold on these
 
 		# now we hold the piece, but only if we can hold in the first place
@@ -244,7 +108,7 @@ class Tree_node:
 			# there is a piece
 			if self.held > -1:
 
-				children2 = generate_successor_states(self.board, self.held)
+				children2 = self.board.successor_states(self.held)
 				max2, ind2 = self.make_children(children2, self.held, piece, True, True)
 
 				if max2 > maximum:

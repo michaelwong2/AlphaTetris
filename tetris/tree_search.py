@@ -1,7 +1,7 @@
 # tree search algorithm
 
 from api.bmat import Board_Matrix
-from tree_components import Tree_node
+from tree_node import Tree_node
 from Ranker import Ranker
 from collections import deque
 
