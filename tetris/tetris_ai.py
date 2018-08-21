@@ -6,7 +6,7 @@ from api.utils import decode_move, encode_move, Piece_Generator
 from copy import deepcopy
 from api.bmat import Board_Matrix
 
-board = Board_Matrix()
+board = Board_Matrix(binary=False)
 pg = Piece_Generator()
 
 t = Tetris_Search_Tree(board=board, initial_pieces=[pg.get_next() for _ in range(3)])

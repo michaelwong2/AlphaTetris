@@ -1,4 +1,4 @@
-# client renderer
+# client game of tetris, implemented with custom tetris API
 
 import pygame
 import sys
@@ -190,7 +190,7 @@ class Tetris:
 				if cp.intersects(x,y):
 					color = cp.get_color()
 				else:
-					color = block_color(piece) if piece != None else GRAY
+					color = block_color(piece) if piece != 0 else GRAY
 
 				pygame.draw.rect(self.screen, color,
 					pygame.Rect(
@@ -217,7 +217,7 @@ class Tetris:
 
 		ny = 2
 		for next_piece in q[:5]:
-			color = block_color(next_piece)
+			color = block_color(next_piece+1)
 			piece = Block(next_piece)
 			nx = piece.get_spawn(w)
 

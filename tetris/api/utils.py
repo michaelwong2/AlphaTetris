@@ -22,14 +22,8 @@ def encode_move(m):
 def decode_move(m):
 	return 'error' if m >= 7 else int_move_map[m]
 
-
-inf = float('inf')
-
-def inf():
-	return inf
-
-def neg_inf():
-	return -inf
+def valid_moves():
+	return int_move_map
 
 # Bag algorithm
 class Piece_Generator:

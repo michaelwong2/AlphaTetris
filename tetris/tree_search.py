@@ -2,7 +2,7 @@
 
 from api.bmat import Board_Matrix
 from tree_node import Tree_node
-from Ranker import Ranker
+from ranker import Ranker
 from collections import deque
 
 class Tetris_Search_Tree:

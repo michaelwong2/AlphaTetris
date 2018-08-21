@@ -92,7 +92,7 @@ def block_color(t):
 	if t <= -1:
 		return
 	else:
-		return colors[t]
+		return colors[t-1]
 
 def valid_rotations(t):
 	return vrots[t]
@@ -120,7 +120,7 @@ class Block:
 			for x in range(self.inner_width):
 				for y in range(self.inner_height):
 					if self.loc_mat[x][y] == 1:
-						board.set(self.off_x + x, self.off_y + y, self.t)
+						board.set(self.off_x + x, self.off_y + y, self.t + 1)
 		except:
 			print("Error setting block")
 
@@ -361,7 +361,7 @@ class Block:
 		return valid_rotations(self.type)
 
 	def get_color(self):
-		return block_color(self.t)
+		return block_color(self.t+1)
 
 	def get_copy(self, r=0):
 		return Block(self.t, r)

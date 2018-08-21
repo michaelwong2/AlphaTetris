@@ -55,7 +55,7 @@ class Tree_node:
 
 	def get_rank(self):
 		global ranker
-		return 1 - ranker.update_strat(self.board, self.lines_sent)
+		return 1 - ranker.rank(self.board, self.lines_sent)
 
 	def get_moves_to_child(self, i):
 		return self.moves_to_child[i]
@@ -202,16 +202,3 @@ class Tree_node:
 			t += child.size()
 
 		return t
-
-
-
-
-
-		
-
-
-
-
-
-
-	

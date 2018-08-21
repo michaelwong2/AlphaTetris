@@ -6,13 +6,16 @@ from .utils import encode_move
 from copy import deepcopy
 
 class Board_Matrix:
-	def __init__(self, w=10, h=20, b=[], g=0):
+	def __init__(self, w=10, h=20, b=[], g=0, binary=False):
 		self.width = w
 		self.height = h
 
-		self.mat = b if len(b) > 0 else [[None for y in range(h)] for x in range(w)]
+		self.mat = b if len(b) > 0 else [[0 for y in range(h)] for x in range(w)]
 
 		self.gray_lines = g
+
+		# use 1 and 0 to store data or use None and piece type integers
+		self.store_binary = binary
 
 		#height of highest block on the board AKA build height
 		self.bheight = 0 if len(b) == 0 else self.calc_build_height()
@@ -25,8 +28,8 @@ class Board_Matrix:
 			for x in range(len(matrix[0])):
 				v = matrix[y][x]
 
-				if v == 0:
-					v = None
+				if v != 0 and not self.store_binary:
+					v = 1
 
 				b.set(x, y, v)
 
@@ -37,9 +40,12 @@ class Board_Matrix:
 		return self.mat[x][y]
 
 	def set(self, x, y, item):
+		if self.store_binary:
+			item = 1 if item != 0 else 0
+
 		self.mat[x][y] = item
 
-		if item != None and item >= 0:
+		if item > 0:
 			n = self.height - y
 			self.bheight = self.bheight if n < self.bheight else n
 
@@ -48,7 +54,7 @@ class Board_Matrix:
 		self.calc_build_height()
 
 	def is_empty(self, x, y):
-		return self.mat[x][y] == None
+		return self.mat[x][y] == self.mat[x][y] == 0
 
 	def is_gray(self, x, y):
 		return self.mat[x][y] == -1
@@ -56,7 +62,7 @@ class Board_Matrix:
 	def clear(self):
 		for x in range(self.width):
 			for y in range(self.height):
-				self.set(x,y,None)
+				self.set(x,y,0)
 
 	def get_width(self):
 		return self.width
@@ -89,7 +95,7 @@ class Board_Matrix:
 
 				i = self.lookup(x,y)
 
-				h += 'p' if i == None else 'n'
+				h += '0' if 0 else '1'
 
 			h += 'b'
 
@@ -98,7 +104,7 @@ class Board_Matrix:
 	# get a copy of the board
 	def get_copy(self):
 		c = [[self.lookup(x,y) for y in range(self.height)] for x in range(self.width)]
-		return Board_Matrix(self.width, self.height, c, self.gray_lines)
+		return Board_Matrix(self.width, self.height, c, self.gray_lines, binary=self.store_binary)
 
 	def check_KO(self):
 		return self.build_height() >= self.height
@@ -118,7 +124,7 @@ class Board_Matrix:
 	# s will be the index where a gap occurs in a line
 	def add_gray_with_gap(self, s):
 		if self.shift_up(1):
-			self.set(x,self.height-1, None)
+			self.set(x,self.height-1, 0)
 			return True
 
 		return False
@@ -159,6 +165,17 @@ class Board_Matrix:
 				lines_cleared += 1
 
 		return lines_cleared
+
+	def resultant_points(self):
+		lines_will_clear = 0
+		for y in range(self.height):
+			c = 0
+			for x in range(self.width):
+				c += 0 if self.is_empty(x,y) or self.is_gray(x,y) else 1
+			if c == self.width:
+				lines_will_clear += 1
+
+		return lines_will_clear
 
 	# shift down all cells (excluding live pieces) from i upwards
 	def shift_down(self, i):

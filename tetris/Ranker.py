@@ -82,22 +82,9 @@ class Ranker:
             total += x
         return 16 - ((total - min) / 9)
 
-    def tetris_rank(self, board):
-        return 0.7*len(self.pos_holes(board))/180 + 0.2*self.heur_avg_height(board)/20 + 0.1*self.heur_bumps(board)/180
-
-    def norm_rank(self, board):
-        return 0.25*self.heur_hole_clump(board)/100 + 0.25*self.heur_hole_depth(board)/2100 + 0.25*self.heur_bumps(board)/180 + 0.25*self.heur_avg_height(board)/20
-
-    def combo_rank(self, board):
-        return 0.5*len(self.pos_holes(board))/180 + 0.2*self.heur_avg_height(board)/20 + 0.3*self.heur_bumps(board)/180 + 0.2*self.heur_hole_depth(board)/2100
-
-    def rand_rank(self):
-        return randint(0,100)/100.0
-
-    def update_strat(self, board, lines):
-        #strats = min(self.norm_rank(board), self.tetris_rank(board), self.combo_rank(board))
-        strats = self.tetris_rank(board)
-        return 0.4*strats + 0.6*((100.0 - lines)/100.0)
+    def rank(self, board, lines):
+        a = 0.7*len(self.pos_holes(board))/180 + 0.2*self.heur_avg_height(board)/20 + 0.1*self.heur_bumps(board)/180
+        return 0.4*a + 0.6*((100.0 - lines)/100.0)
 
 # testing utilities
 # m = [
