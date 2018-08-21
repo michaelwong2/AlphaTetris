@@ -40,14 +40,16 @@ class Board_Matrix:
 		return self.mat[x][y]
 
 	def set(self, x, y, item):
-		if self.store_binary:
-			item = 1 if item != 0 else 0
-
-		self.mat[x][y] = item
 
 		if item > 0:
 			n = self.height - y
 			self.bheight = self.bheight if n < self.bheight else n
+
+			if self.store_binary:
+				item = 1
+
+		self.mat[x][y] = item
+
 
 	def set_matrix(self, m):
 		self.mat = m
@@ -92,13 +94,8 @@ class Board_Matrix:
 		h = ''
 		for x in range(self.width):
 			for y in range(self.height):
-
-				i = self.lookup(x,y)
-
-				h += '0' if 0 else '1'
-
+				h += '0' if self.lookup(x,y) == 0 else '1'
 			h += 'b'
-
 		return h
 
 	# get a copy of the board
@@ -180,9 +177,7 @@ class Board_Matrix:
 	# shift down all cells (excluding live pieces) from i upwards
 	def shift_down(self, i):
 
-		if i >= self.height:
-			print("oops")
-			return
+		assert i < self.height
 
 		for y in range(i-1, -1, -1):
 			for x in range(self.width):
@@ -207,14 +202,10 @@ class Board_Matrix:
 	def __str__(self):
 
 		s = ''
-
 		for y in range(self.height):
-
 			line = ''
-
 			for x in range(self.width):
 				line += str(self.lookup(x,y)) + ' ' if not self.is_empty(x,y) else '_ '
-
 			s += line + '\n'
 
 		return s
@@ -257,8 +248,6 @@ class Board_Matrix:
 
 				# memoize
 				memo[tx][ty][rotation] = 1
-
-				#print(str(tx) + ", " + str(ty) + ", " + str(rotation))
 
 				# encode moves
 				moves = [encode_move('crot') for i in range(rotation)] + [encode_move('left') if x - sx < 0 else encode_move('right') for i in range(abs(x-sx))] + [encode_move('drop')]
@@ -317,8 +306,7 @@ class Board_Matrix:
 
 				# now encode additional movements
 				# copy moves and convert drops to down movements because this is more meticulous
-
-				nmoves = deepcopy(moves)
+				nmoves = moves[:]
 
 				# convert drops to down moves
 				l = len(moves) - 1

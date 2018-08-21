@@ -81,7 +81,7 @@ class Tree_node:
 
 			for i in range(len(self.children)):
 				child = self.children[i]
-				max_v, max_i = child.generate_children_with_piece(piece)
+				max_v, _ = child.generate_children_with_piece(piece)
 
 				if max_v > maximum:
 					maximum = max_v
