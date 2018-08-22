@@ -183,6 +183,9 @@ class Board_Matrix:
 			for x in range(self.width):
 				self.set(x,y+1, self.lookup(x,y))
 
+		for x in range(self.width):
+			self.set(x, 0, 0)
+
 		self.bheight -= 1
 
 	# shift up all cells k <= n times
