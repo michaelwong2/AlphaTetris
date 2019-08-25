@@ -235,7 +235,7 @@ class Tetrimino:
             self.drop()
             return True
         else:
-            print("[Tetris API] Cannot perform action")
+            Log("Cannot perform action")
             return False
 
     def executeMoves(self, moves: List[TetriminoAction]) -> bool:

@@ -107,6 +107,9 @@ class TetrisUtils:
         shuffle(bag)
         return bag
 
+def Log(message: str) -> None:
+    print('[Tetris API]{}'.format(message))
+
 if __name__ == '__main__':
     print(TetrisUtils.clockwiseNext(Orientation.NORTH) == 1)
     print(TetrisUtils.randomBag())

@@ -1,15 +1,9 @@
-#Regular Combos
 
-# tspins
-# 0 -- single
-# 1 -- double
-# 2 -- triple
+def pointsFromLinesCleared(linesCleared, comboSoFar:int, tSpinType:int, isTetris:bool, isPerfectClear:bool, isB2BTetris:bool):
+    linesSent = 0
+    tSpinBonus = 2
 
-def next_points(combo, lines, tetris, tspin, perf, b2b):
-
-    sent_lines = 0
-
-    if lines > 0:
+    if linesCleared > 0:
         if combo < 0:
             sent_lines = -1-3
         elif combo < 2:
@@ -23,38 +17,22 @@ def next_points(combo, lines, tetris, tspin, perf, b2b):
         else:
             sent_lines = 5-3
 
-    sent_lines += lines
+    linesSent += lines
 
-    if tetris and b2b:
-        sent_lines += 6
-    elif tetris:
-        sent_lines += 4
+    if isTetris:
+        linesSent += 2
+        if isB2BTetris:
+            linesSent += 4
+            tSpinBonus = 3
 
-    x = 2
-    if b2b:
-        x = 3
-    if tspin == 0:
-        sent_lines += x
-    elif tspin == 1:
-        sent_lines += 2*x
-    elif tspin == 2:
-        sent_lines += 3*x
+    if tSpinType == 0:
+        linesSent += tSpinBonus
+    elif tSpinType == 1:
+        linesSent += 2*tSpinBonus
+    elif tSpinType == 2:
+        linesSent += 3*tSpinBonus
 
-    if perf:
-        sent_lines += 10
+    if isPerfectClear:
+        linesSent += 10
 
-    return sent_lines
-
-#Perfect Clears
-def perf_clear_detect(board):
-    for x in range(board.get_width()):
-        if not board.is_empty(x, 19):
-            return False
-    return True
-
-#T-Spin Points
-def tspin_detect(moves):
-    last_index = len(moves)-1
-    return moves[last_index] == 0 or moves[last_index] == 1
-
-print(next_points(5, 0, False, 0, False, False))
+    return linesSent
